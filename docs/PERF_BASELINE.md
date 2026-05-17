@@ -103,6 +103,25 @@ Min instances — **לא** בוצע (מחוץ ל-P1A).
 
 ---
 
+## Repo verification gate — מאי 2026
+
+תיעוד **build / lint / test** אחרי סגירת ה-repo המפוצל. **לא** deploy; **לא** 2D-1.
+
+| מדד | ערך |
+|-----|-----|
+| **HEAD** | `55cbaef` |
+| **git status** | נקי |
+| `npm run lint` | PASS |
+| `npm run build` | PASS |
+| `npm run test:functions` | PASS |
+| `npm run test:rules` | PASS |
+| `npm run test:functions:emulator` | PASS |
+
+**Emulator:** `test:rules` ו-`test:functions:emulator` דורשים **Firestore Emulator** (`firebase emulators:exec --only firestore`).  
+**לוגים:** `firestore-debug.log` נוצר מקומית — **ב-`.gitignore`**, לא נשמר ב-git.
+
+---
+
 ## עדכונים עתידיים
 
 | שלב | מה למדוד |

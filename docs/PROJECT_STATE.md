@@ -18,6 +18,7 @@
 **תשתית בדיקות בסיסית:** unit + Firestore Emulator smoke + Rules deny-write — **הושלמה**.  
 **ביצועים (mutations):** רענון קל — patch יתרות מהשרת + `listEntries` — **P1A (create) + P1B (approve/reject/cancel/edit)**.  
 **עלות Firebase:** baseline סיכון עלות נבדק — סיכון MVP **LOW**; pagination נדחה עד שימוש אמיתי או ~100–200 רשומות/כרטיס ([PERF_BASELINE.md](./PERF_BASELINE.md) — Firebase Cost Risk Baseline).  
+**Repo (מאי 2026):** `HEAD` **`55cbaef`** — working tree נקי; **build/lint/test gate PASS** ([PERF_BASELINE.md](./PERF_BASELINE.md) — Repo verification gate). **לא** בוצע deploy; **2D-1** לא התחיל.  
 שלב חדש **לא** מתחיל בלי אישור מפורש (כולל **2D-1**).
 
 ### אימות 2B-4 (בוצע בפועל)
@@ -155,6 +156,23 @@
 
 **2D-P1B:** [STAGE2D-P1B_LIGHT_REFRESH_MUTATIONS.md](./STAGE2D-P1B_LIGHT_REFRESH_MUTATIONS.md) — **מיושם + deployed + QA סגור (PASS)**  
 **ביצועים:** [PERF_BASELINE.md](./PERF_BASELINE.md) — סעיף P1B
+
+### אימות Repo — build / lint / test gate (מאי 2026)
+
+אחרי סגירת commits מפוצלים (docs, Functions, app, PWA, root package) עד **`55cbaef`**.
+
+| בדיקה | תוצאה |
+|--------|--------|
+| `git status` | נקי |
+| `npm run lint` | ✓ PASS |
+| `npm run build` | ✓ PASS |
+| `npm run test:functions` | ✓ PASS (unit — `entryIntent`) |
+| `npm run test:rules` | ✓ PASS (Firestore Emulator + Rules deny-write ל-`entries`) |
+| `npm run test:functions:emulator` | ✓ PASS (`createEntry` smoke) |
+| Firestore Emulator | נדרש ל-`test:rules` ול-`test:functions:emulator` (`firebase emulators:exec --only firestore`) |
+| `firestore-debug.log` | ב-`.gitignore` — לא ב-repo |
+| deploy | **לא** בוצע במסגרת gate זה |
+| **2D-1** | **לא** התחיל |
 
 ## Stages שהושלמו
 
