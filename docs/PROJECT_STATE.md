@@ -20,13 +20,14 @@
 
 | מדד נוכחי (מאי 2026) | סטטוס |
 |----------------------|--------|
-| **HEAD** | `5ab6a7f` · `git status` נקי |
+| **Production URL** | https://account-card-prod.vercel.app |
+| **HEAD בפרודקשן (Vercel)** | `5aadf63` |
 | **עלות Firebase** | סיכון MVP **LOW**; pagination עתידי ~100–200 רשומות/כרטיס — [PERF_BASELINE.md](./PERF_BASELINE.md) |
-| **Repo gate** | lint / build / test PASS @ `610815f` — [PERF_BASELINE.md](./PERF_BASELINE.md) (Repo verification gate) |
-| **Production UI** | **Vercel** (נעול) — **לא** Firebase Hosting / App Hosting / VPS |
+| **Repo gate** | lint / build / test PASS @ `610815f` — [PERF_BASELINE.md](./PERF_BASELINE.md) |
+| **Production UI** | **Vercel** — deploy **PASS**; smoke **PASS** — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md) |
 | **Backend** | Firebase `account-card-18e3a` · Functions `europe-west1` |
-| **Deploy preflight** | **READY WITH WARNINGS** — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md) |
-| **deploy** | **לא** בוצע |
+| **Deploy preflight** | **READY WITH WARNINGS** (לפני עלייה ראשונה) — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md) |
+| **שינוי deploy אחרי smoke** | **לא** |
 | **2D-1** | **לא** התחיל |
 
 שלב חדש **לא** מתחיל בלי אישור מפורש (כולל **2D-1**).
@@ -186,7 +187,23 @@
 
 ### Deploy Preflight Audit (מאי 2026)
 
-**מסקנה:** **READY WITH WARNINGS** @ `5ab6a7f`. Firestore rules/indexes מוכנים ב-repo — לוודא drift ו-indexes **Enabled** בפרודקשן. פירוט מלא, pre-flight מקומי, וחוסמים חיצוניים — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md).
+**מסקנה:** **READY WITH WARNINGS** @ `5ab6a7f`. פירוט — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md).
+
+### Production Smoke — PASS (מאי 2026)
+
+**מארח:** https://account-card-prod.vercel.app · **HEAD:** `5aadf63` · **לא** שינוי deploy אחרי smoke · **2D-1** לא התחיל.
+
+| בדיקה | תוצאה |
+|--------|--------|
+| Vercel deploy | ✓ PASS |
+| Login | ✓ PASS |
+| Dashboard / גישה לכרטיס | ✓ PASS |
+| `createEntry` | ✓ PASS (~**1.76s**) |
+| `approveEntry` | ✓ PASS (~**2.43s**) |
+| רענון Firestore (ערוץ/קריאה) | ~**180–200ms** |
+| `inviteLink` host | https://account-card-prod.vercel.app — **לא** localhost |
+
+**ביצועים:** latency נוכחית **סבירה ל-MVP**; איטיות מורגשת — מעקב נפרד UX/performance (לא חוסם production). פירוט — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md).
 
 ## Stages שהושלמו
 
@@ -209,8 +226,8 @@
 
 ## Firebase (Functions)
 
-- **Callables (`europe-west1`):** `health`, `createAccountCard`, `createInvitation`, `getInvitationPreview`, `acceptInvitation`, `createEntry`, `approveEntry`, `rejectEntry`, `cancelEntry`, **`editEntry`** — P1B mutations עם תשובת יתרות **deployed** ב-Firebase; **UI production לא נפרס** ל-Vercel
-- **לפני production:** `APP_BASE_URL`, Auth authorized domains, deploy — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md)
+- **Callables (`europe-west1`):** `health`, `createAccountCard`, `createInvitation`, `getInvitationPreview`, `acceptInvitation`, `createEntry`, `approveEntry`, `rejectEntry`, `cancelEntry`, **`editEntry`**
+- **Production UI:** https://account-card-prod.vercel.app (`5aadf63`) — smoke PASS; `APP_BASE_URL` / הזמנות — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md)
 
 ## מה לא לבנות עכשיו
 
@@ -220,8 +237,8 @@
 
 ## השלב הבא
 
-**Production deploy (כשמאושר):** לפי [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md) — pre-flight → rules/indexes → functions → Vercel → smoke.  
-**2D-1 — Balance & Permission Function Tests** — מסלול בדיקות Functions מומלץ — **לא מתחילים בלי אישור מפורש**.
+**Production:** עלה ל-Vercel — smoke ראשון **PASS** ([DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md)). **לא** שינוי deploy אחרי smoke.  
+**2D-1 — Balance & Permission Function Tests** — **לא מתחילים בלי אישור מפורש**.
 
 ## מסמכים
 

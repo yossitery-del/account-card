@@ -1,6 +1,6 @@
 # Production Hosting — כרטיס חשבון
 
-**סטטוס @ `5ab6a7f`:** Preflight **READY WITH WARNINGS** · hosting נעול (Vercel + Firebase) · **לא** deploy · **לא** 2D-1.
+**Production:** https://account-card-prod.vercel.app · **HEAD deployed:** `5aadf63` · smoke **PASS** · **לא** שינוי deploy אחרי smoke · **לא** 2D-1.
 
 ---
 
@@ -67,7 +67,7 @@ Repo + `firebase.json` (Firestore, Functions) מספיקים ל-preflight מקו
 
 | פרמטר | ערך |
 |--------|-----|
-| `APP_BASE_URL` | `https://<production-domain>` — דומיין Vercel production (או custom domain) |
+| `APP_BASE_URL` | `https://account-card-prod.vercel.app` (production מאומת ב-smoke) — או custom domain עתידי |
 
 משמש לבניית `inviteLink` ב-`createInvitation`. ברירת מחדל בקוד: `http://localhost:3000` — **חייב** לעדכן לפני שיתוף הזמנות בפרודקשן.
 
@@ -137,6 +137,27 @@ firebase deploy --only functions
 | 4 | הזמנה — `inviteLink` עם host של production |
 | 5 | Join — `/join/[token]` → accept |
 | 6 | `createEntry` + `approveEntry` (לפחות) |
+
+---
+
+## Production Smoke — PASS (מאי 2026)
+
+**מארח:** https://account-card-prod.vercel.app · **HEAD:** `5aadf63` · **לא** deploy נוסף אחרי smoke · **2D-1** לא התחיל.
+
+| בדיקה | תוצאה |
+|--------|--------|
+| Vercel deploy | ✓ PASS |
+| Login | ✓ PASS |
+| Dashboard / גישה לחשבון | ✓ PASS |
+| `createEntry` | ✓ PASS (~**1.76s**) |
+| `approveEntry` | ✓ PASS (~**2.43s**) |
+| רענון Firestore (ערוץ/קריאה) | ~**180–200ms** |
+| `inviteLink` host | https://account-card-prod.vercel.app |
+| קישורי הזמנה | **לא** localhost |
+
+### ביצועים (הערה)
+
+Latency נוכחית **מקובלת ל-MVP**. איטיות **מורגשת** — לעקוב בנפרד כ-UX/performance follow-up ([PERF_BASELINE.md](./PERF_BASELINE.md), עתידי **2D-3**) — **לא** חוסם production.
 
 ---
 
