@@ -15,6 +15,7 @@ import { AddEntrySheet } from "@/components/entries/AddEntrySheet";
 import { EditEntrySheet } from "@/components/entries/EditEntrySheet";
 import { EntryList } from "@/components/entries/EntryList";
 import { LoadingVault } from "@/components/ui/LoadingVault";
+import { ProcessingOverlay } from "@/components/ui/ProcessingOverlay";
 import { cardsCopy } from "@/lib/cards/cardsCopy";
 import {
   formatOfficialBalanceAmount,
@@ -60,6 +61,7 @@ export default function CardDetailPage() {
     "approve" | "reject" | "cancel" | null
   >(null);
   const [entryActionError, setEntryActionError] = useState<string | null>(null);
+  const [sheetMutationPending, setSheetMutationPending] = useState(false);
 
   const entriesSectionRef = useRef<HTMLElement>(null);
   const didScrollToPendingRef = useRef(false);
@@ -289,12 +291,13 @@ export default function CardDetailPage() {
 
   const handleEdit = useCallback(
     (entryId: string) => {
+      if (actingEntryId || sheetMutationPending) return;
       const entry = entries.find((e) => e.id === entryId);
       if (!entry) return;
       setEditingEntry(entry);
       setEditOpen(true);
     },
-    [entries]
+    [entries, actingEntryId, sheetMutationPending]
   );
 
   const handleCancel = useCallback(
@@ -319,9 +322,10 @@ export default function CardDetailPage() {
   );
 
   const entriesLoading = !pageReady || entriesRefreshing;
+  const mutationProcessing = actingEntryId !== null || sheetMutationPending;
 
   return (
-    <main className="min-h-dvh px-6 py-10">
+    <main className="min-h-dvh px-6 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto w-full max-w-lg">
         <AppShellHeader
           title={card?.title ?? "כרטיס"}
@@ -377,8 +381,9 @@ export default function CardDetailPage() {
               {canAddEntry ? (
                 <button
                   type="button"
+                  disabled={mutationProcessing}
                   onClick={() => setAddOpen(true)}
-                  className="mb-5 w-full rounded-xl bg-[var(--color-champagne)] py-3.5 text-base font-medium text-[var(--color-vault-black)] transition hover:bg-[var(--color-champagne-hover)]"
+                  className="mb-5 min-h-11 w-full rounded-xl bg-[var(--color-champagne)] py-3.5 text-base font-medium text-[var(--color-vault-black)] transition hover:bg-[var(--color-champagne-hover)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {entriesCopy.addButton}
                 </button>
@@ -407,7 +412,7 @@ export default function CardDetailPage() {
               balancePerspectiveUid={card.balancePerspectiveUid}
               participantNames={participantNames}
               loading={entriesLoading && entries.length === 0}
-              refreshing={entriesRefreshing}
+              refreshing={entriesRefreshing && !mutationProcessing}
               highlightPending={highlightEntries}
               actingEntryId={actingEntryId}
               actingKind={actingKind}
@@ -427,19 +432,23 @@ export default function CardDetailPage() {
                 setEditOpen(false);
                 setEditingEntry(null);
               }}
-              onEdited={(result) => {
-                void refreshAfterEntryMutation(result);
+              onEdited={async (result) => {
+                await refreshAfterEntryMutation(result);
               }}
+              onPendingChange={setSheetMutationPending}
             />
 
             <AddEntrySheet
               cardId={cardId}
               open={addOpen}
               onClose={() => setAddOpen(false)}
-              onCreated={(result) => {
-                void refreshAfterEntryMutation(result);
+              onCreated={async (result) => {
+                await refreshAfterEntryMutation(result);
               }}
+              onPendingChange={setSheetMutationPending}
             />
+
+            <ProcessingOverlay visible={mutationProcessing} />
           </>
         ) : null}
       </div>

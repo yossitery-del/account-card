@@ -124,7 +124,7 @@ export function EntryListItem({
             type="button"
             disabled={actionsDisabled}
             onClick={() => onApprove(entry.id)}
-            className="rounded-lg border border-[var(--color-champagne)]/35 bg-[var(--color-champagne)]/12 px-3 py-1.5 text-xs font-medium text-[var(--color-champagne)] transition hover:bg-[var(--color-champagne)]/20 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-11 min-w-[4.5rem] items-center justify-center rounded-lg border border-[var(--color-champagne)]/35 bg-[var(--color-champagne)]/12 px-4 py-2.5 text-sm font-medium text-[var(--color-champagne)] transition hover:bg-[var(--color-champagne)]/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isActing && actingKind === "approve"
               ? entriesCopy.approving
@@ -134,7 +134,7 @@ export function EntryListItem({
             type="button"
             disabled={actionsDisabled}
             onClick={() => onReject(entry.id)}
-            className="rounded-lg border border-[var(--color-glass-border)]/60 bg-transparent px-3 py-1.5 text-xs font-medium text-[var(--color-mist)] transition hover:border-[var(--color-mist)]/40 hover:text-[var(--color-pearl)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-11 min-w-[4.5rem] items-center justify-center rounded-lg border border-[var(--color-glass-border)]/60 bg-transparent px-4 py-2.5 text-sm font-medium text-[var(--color-mist)] transition hover:border-[var(--color-mist)]/40 hover:text-[var(--color-pearl)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isActing && actingKind === "reject"
               ? entriesCopy.rejecting
@@ -150,7 +150,7 @@ export function EntryListItem({
               type="button"
               disabled={actionsDisabled}
               onClick={() => onEdit(entry.id)}
-              className="rounded-lg border border-[var(--color-champagne)]/35 bg-[var(--color-champagne)]/12 px-3 py-1.5 text-xs font-medium text-[var(--color-champagne)] transition hover:bg-[var(--color-champagne)]/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-11 min-w-[4.5rem] items-center justify-center rounded-lg border border-[var(--color-champagne)]/35 bg-[var(--color-champagne)]/12 px-4 py-2.5 text-sm font-medium text-[var(--color-champagne)] transition hover:bg-[var(--color-champagne)]/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {entriesCopy.edit}
             </button>
@@ -160,7 +160,7 @@ export function EntryListItem({
             type="button"
             disabled={actionsDisabled}
             onClick={() => onCancel(entry.id)}
-            className="rounded-lg border border-[var(--color-glass-border)]/60 bg-transparent px-3 py-1.5 text-xs font-medium text-[var(--color-mist)] transition hover:border-[var(--color-mist)]/40 hover:text-[var(--color-pearl)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-11 min-w-[4.5rem] items-center justify-center rounded-lg border border-[var(--color-glass-border)]/60 bg-transparent px-4 py-2.5 text-sm font-medium text-[var(--color-mist)] transition hover:border-[var(--color-mist)]/40 hover:text-[var(--color-pearl)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isActing && actingKind === "cancel"
               ? entriesCopy.cancelling

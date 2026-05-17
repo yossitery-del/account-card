@@ -18,7 +18,8 @@ type EditEntrySheetProps = {
   balancePerspectiveUid: string;
   open: boolean;
   onClose: () => void;
-  onEdited: (result: EntryMutationCallableResult) => void;
+  onEdited: (result: EntryMutationCallableResult) => void | Promise<void>;
+  onPendingChange?: (pending: boolean) => void;
 };
 
 export function EditEntrySheet({
@@ -28,6 +29,7 @@ export function EditEntrySheet({
   open,
   onClose,
   onEdited,
+  onPendingChange,
 }: EditEntrySheetProps) {
   const { user } = useAuth();
   const [selectedIntent, setSelectedIntent] = useState<EntryIntent | null>(() =>
@@ -45,6 +47,10 @@ export function EditEntrySheet({
     setError(null);
     onClose();
   }, [pending, onClose]);
+
+  useEffect(() => {
+    onPendingChange?.(pending);
+  }, [pending, onPendingChange]);
 
   useEffect(() => {
     if (!open) return;
@@ -94,7 +100,7 @@ export function EditEntrySheet({
           amountResult.amount,
           title
         );
-        onEdited(result);
+        await onEdited(result);
         handleClose();
       } catch (err) {
         console.error("editEntry failed:", err);
@@ -116,7 +122,7 @@ export function EditEntrySheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(6,7,10,0.88)] p-4 backdrop-blur-md sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(6,7,10,0.88)] p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))] backdrop-blur-md sm:items-center"
       role="presentation"
       onClick={pending ? undefined : handleClose}
     >
@@ -162,7 +168,7 @@ export function EditEntrySheet({
                 inputMode="decimal"
                 autoComplete="off"
                 dir="ltr"
-                className="w-full rounded-xl border border-[var(--color-glass-border)] bg-[rgba(12,14,20,0.85)] px-4 py-3 text-lg text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
+                className="w-full rounded-xl border border-[var(--color-glass-border)] bg-[rgba(12,14,20,0.85)] px-4 py-3 text-base text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
                 value={amountRaw}
                 onChange={(e) => setAmountRaw(e.target.value)}
                 disabled={pending}
@@ -180,7 +186,7 @@ export function EditEntrySheet({
                 id="edit-entry-title"
                 type="text"
                 autoComplete="off"
-                className="w-full rounded-xl border border-[var(--color-glass-border)] bg-[rgba(12,14,20,0.85)] px-4 py-3 text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
+                className="w-full rounded-xl border border-[var(--color-glass-border)] bg-[rgba(12,14,20,0.85)] px-4 py-3 text-base text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
                 placeholder={entriesCopy.titlePlaceholder}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -201,7 +207,7 @@ export function EditEntrySheet({
             <button
               type="submit"
               disabled={pending}
-              className="w-full rounded-xl bg-[var(--color-champagne)] py-3.5 text-base font-medium text-[var(--color-vault-black)] transition hover:bg-[var(--color-champagne-hover)] disabled:opacity-60"
+              className="min-h-11 w-full rounded-xl bg-[var(--color-champagne)] py-3.5 text-base font-medium text-[var(--color-vault-black)] transition hover:bg-[var(--color-champagne-hover)] disabled:opacity-60"
             >
               {pending ? entriesCopy.saving : entriesCopy.editSubmit}
             </button>
@@ -230,7 +236,7 @@ function TypeChoiceButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`rounded-2xl border px-4 py-4 text-start transition ${
+      className={`min-h-11 rounded-2xl border px-4 py-3 text-start transition ${
         selected
           ? "border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] shadow-[0_0_0_1px_rgba(201,184,150,0.3)]"
           : "border-[var(--color-glass-border)] bg-[rgba(12,14,20,0.75)] hover:border-[var(--color-mist)]"
