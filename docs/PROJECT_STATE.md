@@ -17,6 +17,7 @@
 **מעגל pending לפני אישור:** create → approve/reject → cancel → edit — **הושלם**.  
 **תשתית בדיקות בסיסית:** unit + Firestore Emulator smoke + Rules deny-write — **הושלמה**.  
 **ביצועים (mutations):** רענון קל — patch יתרות מהשרת + `listEntries` — **P1A (create) + P1B (approve/reject/cancel/edit)**.  
+**עלות Firebase:** baseline סיכון עלות נבדק — סיכון MVP **LOW**; pagination נדחה עד שימוש אמיתי או ~100–200 רשומות/כרטיס ([PERF_BASELINE.md](./PERF_BASELINE.md) — Firebase Cost Risk Baseline).  
 שלב חדש **לא** מתחיל בלי אישור מפורש (כולל **2D-1**).
 
 ### אימות 2B-4 (בוצע בפועל)
