@@ -1,7 +1,9 @@
 "use client";
 
 import { forwardRef } from "react";
+import { PremiumLoader } from "@/components/ui/PremiumLoader";
 import { entriesCopy } from "@/lib/entries/entriesCopy";
+import { loadingLabels } from "@/lib/ui/loadingLabels";
 import type { AccountCardEntryWithId } from "@/types/entry";
 import { EntryListItem } from "./EntryListItem";
 
@@ -54,14 +56,16 @@ export const EntryList = forwardRef<HTMLElement, EntryListProps>(function EntryL
           {entriesCopy.listTitle}
         </h3>
         {refreshing ? (
-          <span className="text-[10px] text-[var(--color-mist)]">מעדכן…</span>
+          <span className="text-[10px] text-[var(--color-mist)]">
+            {loadingLabels.updating}
+          </span>
         ) : null}
       </div>
 
       {loading ? (
-        <p className="py-6 text-center text-sm text-[var(--color-mist)]">
-          טוען רשומות…
-        </p>
+        <div className="flex justify-center py-10">
+          <PremiumLoader label={loadingLabels.entries} />
+        </div>
       ) : entries.length === 0 ? (
         <div className="py-8 text-center">
           <p className="text-sm text-[var(--color-pearl)]">{entriesCopy.emptyTitle}</p>

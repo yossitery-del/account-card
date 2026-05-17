@@ -7,6 +7,7 @@ import { CardList } from "@/components/cards/CardList";
 import { EmptyCardsState } from "@/components/cards/EmptyCardsState";
 import { DevAuthIdentity } from "@/components/dev/DevAuthIdentity";
 import { LoadingVault } from "@/components/ui/LoadingVault";
+import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { FunctionsHealthDebug } from "@/components/dev/FunctionsHealthDebug";
 import { listUserCards } from "@/lib/cards/listUserCards";
 import type { AccountCardSummary } from "@/types/card";
@@ -75,7 +76,7 @@ export default function AppPage() {
         <DevAuthIdentity />
 
         {authLoading || loading ? (
-          <LoadingVault />
+          <LoadingVault inline label={loadingLabels.cards} />
         ) : error ? (
           <p className="text-center text-sm text-[var(--color-muted-rose)]" role="alert">
             {error}

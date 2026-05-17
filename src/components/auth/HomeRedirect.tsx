@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { LoadingVault } from "@/components/ui/LoadingVault";
+import { loadingLabels } from "@/lib/ui/loadingLabels";
 
 /** / — מפנה ל-/app או /login לפי מצב Auth */
 export function HomeRedirect() {
@@ -15,5 +16,5 @@ export function HomeRedirect() {
     router.replace(user ? "/app" : "/login");
   }, [user, loading, router]);
 
-  return <LoadingVault />;
+  return <LoadingVault label={loadingLabels.account} />;
 }

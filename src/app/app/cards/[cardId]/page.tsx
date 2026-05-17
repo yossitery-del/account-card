@@ -14,8 +14,8 @@ import { CardShareStatus } from "@/components/cards/CardShareStatus";
 import { AddEntrySheet } from "@/components/entries/AddEntrySheet";
 import { EditEntrySheet } from "@/components/entries/EditEntrySheet";
 import { EntryList } from "@/components/entries/EntryList";
-import { LoadingVault } from "@/components/ui/LoadingVault";
 import { ProcessingOverlay } from "@/components/ui/ProcessingOverlay";
+import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { cardsCopy } from "@/lib/cards/cardsCopy";
 import {
   formatOfficialBalanceAmount,
@@ -321,8 +321,13 @@ export default function CardDetailPage() {
     [user, cardId, actingEntryId, refreshAfterEntryMutation]
   );
 
+  const pageLoading = authLoading || !pageReady;
   const entriesLoading = !pageReady || entriesRefreshing;
   const mutationProcessing = actingEntryId !== null || sheetMutationPending;
+  const overlayVisible = pageLoading || mutationProcessing;
+  const overlayLabel = mutationProcessing
+    ? loadingLabels.updating
+    : loadingLabels.card;
 
   return (
     <main className="min-h-dvh px-6 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
@@ -333,9 +338,7 @@ export default function CardDetailPage() {
           backLabel="חזרה לכרטיסים"
         />
 
-        {authLoading || !pageReady ? (
-          <LoadingVault />
-        ) : error ? (
+        {pageLoading ? null : error ? (
           <p
             className="text-center text-sm text-[var(--color-muted-rose)]"
             role="alert"
@@ -447,10 +450,10 @@ export default function CardDetailPage() {
               }}
               onPendingChange={setSheetMutationPending}
             />
-
-            <ProcessingOverlay visible={mutationProcessing} />
           </>
         ) : null}
+
+        <ProcessingOverlay visible={overlayVisible} label={overlayLabel} />
       </div>
     </main>
   );

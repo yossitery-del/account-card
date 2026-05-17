@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { ProcessingOverlay } from "@/components/ui/ProcessingOverlay";
+import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { signInWithGoogle } from "@/lib/auth/google";
 import { acceptInvitation } from "@/lib/invitations/acceptInvitation";
 import {
@@ -141,8 +143,11 @@ export function JoinPreviewScreen({
 
   const title = joinPreviewTitle(preview.inviterDisplayName);
 
+  const joinBusy = acceptPending;
+
   return (
-    <div className="glass-card rounded-2xl p-8">
+    <>
+      <div className="glass-card rounded-2xl p-8">
       <h1 className="mb-4 text-2xl font-medium leading-snug text-[var(--color-pearl)]">
         {title}
       </h1>
@@ -209,5 +214,7 @@ export function JoinPreviewScreen({
         </div>
       )}
     </div>
+    <ProcessingOverlay visible={joinBusy} label={loadingLabels.joiningCard} />
+    </>
   );
 }

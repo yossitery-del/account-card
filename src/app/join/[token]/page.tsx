@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { JoinPreviewScreen } from "@/components/join/JoinPreviewScreen";
 import { LoadingVault } from "@/components/ui/LoadingVault";
+import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { getInvitationPreview } from "@/lib/invitations/getInvitationPreview";
 import { tokenFromJoinUrl } from "@/lib/invitations/tokenFromJoinUrl";
 import type { InvitationPreviewResult } from "@/types/invitation";
@@ -59,7 +60,7 @@ export default function JoinPage() {
         </p>
 
         {loading ? (
-          <LoadingVault />
+          <LoadingVault inline label={loadingLabels.default} />
         ) : loadError ? (
           <div className="glass-card rounded-2xl p-8 text-center">
             <p className="mb-6 text-sm text-[var(--color-muted-rose)]" role="alert">

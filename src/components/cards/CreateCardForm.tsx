@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { ProcessingOverlay } from "@/components/ui/ProcessingOverlay";
 import {
   createAccountCard,
   validateCardTitle,
 } from "@/lib/cards/createAccountCard";
+import { loadingLabels } from "@/lib/ui/loadingLabels";
 
 export function CreateCardForm() {
   const { user } = useAuth();
@@ -46,7 +48,8 @@ export function CreateCardForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-8">
+    <>
+      <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-8">
       <label className="mb-2 block text-sm text-[var(--color-mist)]">
         שם הכרטיס
       </label>
@@ -71,8 +74,10 @@ export function CreateCardForm() {
         disabled={pending}
         className="w-full rounded-full border border-[var(--color-champagne)] bg-[var(--color-glass-surface)] px-6 py-3.5 text-base font-medium text-[var(--color-pearl)] transition-colors hover:bg-[rgba(201,184,150,0.12)] disabled:opacity-50"
       >
-        {pending ? "יוצר כרטיס..." : "יצירת כרטיס"}
+        {pending ? loadingLabels.creatingCard : "יצירת כרטיס"}
       </button>
-    </form>
+      </form>
+      <ProcessingOverlay visible={pending} label={loadingLabels.creatingCard} />
+    </>
   );
 }
