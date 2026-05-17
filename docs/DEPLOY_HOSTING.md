@@ -1,28 +1,39 @@
 # Production Hosting — כרטיס חשבון
 
-**סטטוס:** החלטה נעולה (מאי 2026). **לא** בוצע deploy במסגרת תיעוד זה. **2D-1** לא התחיל.
+**סטטוס @ `5ab6a7f`:** Preflight **READY WITH WARNINGS** · hosting נעול (Vercel + Firebase) · **לא** deploy · **לא** 2D-1.
 
 ---
 
-## החלטה
+## Deploy Preflight Audit (מאי 2026)
 
-| שכבה | פלטפורמה |
-|------|-----------|
-| **UI (Next.js 16 App Router)** | **Vercel** — production host |
-| **Backend** | **Firebase** — פרויקט `account-card-18e3a` |
-| Auth | Firebase Authentication (Google) |
-| Database | Cloud Firestore + Rules + Indexes |
-| Server logic | Cloud Functions — region **`europe-west1`** |
+| מדד | ערך |
+|-----|-----|
+| **HEAD** / **git** | `5ab6a7f` · נקי |
+| **מסקנה** | **READY WITH WARNINGS** |
+| **UI (נעול)** | **Vercel** — Next.js 16 App Router |
+| **Backend** | Firebase `account-card-18e3a` — Auth, Firestore, Rules, Indexes, Functions · region **`europe-west1`** |
+| **לא בשימוש** | Firebase Hosting (אין בלוק ב-`firebase.json`); App Hosting (אין `apphosting.yaml`); VPS |
+| **Firestore rules/indexes** | מוכנים ב-repo — **לוודא** drift ו-indexes **Enabled** לפני deploy |
+| **deploy** | **לא** בוצע |
+| **2D-1** | **לא** התחיל |
 
-### לא בשימוש ל-MVP זה
+Repo + `firebase.json` (Firestore, Functions) מספיקים ל-preflight מקומי. Production חסום עד חוסמים חיצוניים למטה.
 
-| אפשרות | סטטוס |
-|--------|--------|
-| **Firebase Hosting** (`hosting` ב-`firebase.json`) | **לא נדרש** — אין בלוק hosting ב-repo |
-| **Firebase App Hosting** / `apphosting.yaml` | **לא** — לא מאומץ כרגע (Next 16 מחוץ ללוח תמיכה רשמי של App Hosting) |
-| **VPS / Node self-hosted** | **לא** — מחוץ להיקף MVP |
+### External blockers before deploy
 
-**רקע:** אודיט hosting (מאי 2026) — Vercel מתאים ל-Next **16.2.6**, אפליקציית Firebase client-heavy, עלות MVP צפויה, rollback ודומיין/SSL מהירים.
+1. **Configure Vercel project** — חיבור repo, Framework Next.js.
+2. **Add six `NEXT_PUBLIC_FIREBASE_*` env vars** — ראה [משתני סביבה — Vercel](#משתני-סביבה--vercel-חובה).
+3. **Ensure emulator env vars are unset in production** — **לא** להגדיר `NEXT_PUBLIC_USE_FIREBASE_EMULATOR` / `NEXT_PUBLIC_USE_FUNCTIONS_EMULATOR`.
+4. **Set `APP_BASE_URL` in Firebase Functions Parameters** — `https://<production-domain>`.
+5. **Add Vercel production / custom domain to Firebase Auth authorized domains**.
+6. **Confirm Firestore indexes are Enabled** — Console → Firestore → Indexes.
+7. **Confirm production rules/functions drift before deploy** — השוואה ל-repo @ `5ab6a7f` לפני `firebase deploy`.
+
+---
+
+## החלטת hosting (נעולה)
+
+נעולה במאי 2026 — פירוט Preflight בטבלה למעלה. **רקע:** Vercel ל-Next **16.2.6** (client-heavy Firebase); App Hosting לא נבחר (Next 16 מחוץ ללוח תמיכה רשמי).
 
 ---
 
@@ -78,12 +89,17 @@
 
 ### 1. Pre-flight (מקומי)
 
+מ-repo root לפני כל deploy:
+
 ```bash
 npm run lint
 npm run build
 npm run test:all
-cd functions && npm run lint && npm run build && cd ..
+npm run lint --prefix functions
+npm run build --prefix functions
 ```
+
+`test:all` — Firestore Emulator + Java. `functions/lib/` — נדרש לפני `firebase deploy --only functions` (אין `predeploy` ב-`firebase.json`).
 
 ### 2. Firestore
 
