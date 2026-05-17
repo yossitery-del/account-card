@@ -1,0 +1,21 @@
+/**
+ * Design tokens — כרטיס חשבון
+ * @see docs/DESIGN_DIRECTION.md
+ */
+
+:root {
+  --color-vault-black: #0a0b0f;
+  --color-deep-surface: #12141a;
+  --color-pearl: #f4f2ed;
+  --color-mist: #9b98a8;
+  --color-champagne: #c9b896;
+  --color-champagne-hover: #e8dcc4;
+  --color-trust-green: #5cb88a;
+  --color-amber-mist: #d4a574;
+  --color-muted-rose: #b87a7a;
+
+  --color-glass-surface: rgba(255, 255, 255, 0.06);
+  --color-glass-border: rgba(255, 255, 255, 0.12);
+
+  --font-assistant: var(--font-assistant-family), system-ui, sans-serif;
+}
