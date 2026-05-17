@@ -1,0 +1,30 @@
+{
+  "name": "functions",
+  "description": "Firebase Cloud Functions — כרטיס חשבון",
+  "scripts": {
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint --ext .js,.ts src",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "vitest run src/test/unit",
+    "test:integration": "vitest run src/test/integration",
+    "test:all": "vitest run"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^6.6.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.46.0",
+    "@typescript-eslint/parser": "^8.46.0",
+    "eslint": "^8.57.1",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.32.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.6"
+  },
+  "private": true
+}

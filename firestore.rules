@@ -1,0 +1,137 @@
+rules_version = '2';
+
+// Stage 2B-2 — users + accountCards read; create/invitations רק בשרת (Functions Admin).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Users (Stage 1) ---
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function userAllowedKeys() {
+      return ['displayName', 'email', 'photoURL', 'createdAt', 'updatedAt', 'settings'];
+    }
+
+    function hasOnlyUserKeys(data) {
+      return data.keys().hasOnly(userAllowedKeys());
+    }
+
+    function validDisplayName(name) {
+      return name is string && name.size() > 0 && name.size() <= 200;
+    }
+
+    function validEmail(email) {
+      return email is string && email.size() > 0 && email.size() <= 320;
+    }
+
+    function validPhotoURL(data) {
+      return !('photoURL' in data) || data.photoURL == null
+        || (data.photoURL is string && data.photoURL.size() <= 2048);
+    }
+
+    function validSettings(settings) {
+      return settings is map
+        && settings.keys().hasOnly(['locale', 'timezone'])
+        && settings.locale == 'he'
+        && (!('timezone' in settings) || settings.timezone is string);
+    }
+
+    function validUserCreate() {
+      return hasOnlyUserKeys(request.resource.data)
+        && validDisplayName(request.resource.data.displayName)
+        && validEmail(request.resource.data.email)
+        && validPhotoURL(request.resource.data)
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp
+        && validSettings(request.resource.data.settings)
+        && (
+          !('email' in request.auth.token)
+          || request.resource.data.email == request.auth.token.email
+        );
+    }
+
+    function validUserUpdate() {
+      return hasOnlyUserKeys(request.resource.data)
+        && validDisplayName(request.resource.data.displayName)
+        && validEmail(request.resource.data.email)
+        && validPhotoURL(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.settings == resource.data.settings
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && validUserCreate();
+      allow update: if isOwner(userId) && validUserUpdate();
+      allow delete: if false;
+    }
+
+    // --- Account cards (Stage 2B-1) ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isActiveParticipant(cardId) {
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/accountCards/$(cardId)/participants/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/accountCards/$(cardId)/participants/$(request.auth.uid)
+        ).data.status == 'active';
+    }
+
+    function isOwnActiveParticipantDoc() {
+      return isSignedIn()
+        && resource.data.uid == request.auth.uid
+        && resource.data.status == 'active';
+    }
+
+    function canReadParticipant(cardId) {
+      return isOwnActiveParticipantDoc() || isActiveParticipant(cardId);
+    }
+
+    match /accountCards/{cardId} {
+      allow read: if isActiveParticipant(cardId);
+      allow create, update, delete: if false;
+
+      match /participants/{participantId} {
+        allow read: if canReadParticipant(cardId);
+        allow create, update, delete: if false;
+      }
+
+      // 2B-2/2B-4: invitations — read/write רק Functions (create + accept)
+      match /invitations/{inviteId} {
+        allow read, write: if false;
+      }
+
+      // 2C-1: entries — read participant active; write רק Functions
+      match /entries/{entryId} {
+        allow read: if isActiveParticipant(cardId);
+        allow create, update, delete: if false;
+      }
+
+      match /auditEvents/{eventId} {
+        allow read: if isActiveParticipant(cardId);
+        allow create, update, delete: if false;
+      }
+    }
+
+    match /{path=**}/participants/{participantId} {
+      allow read: if isSignedIn()
+        && resource.data.uid == request.auth.uid
+        && resource.data.status == 'active';
+      allow create, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
