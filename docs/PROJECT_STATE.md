@@ -18,7 +18,8 @@
 **תשתית בדיקות בסיסית:** unit + Firestore Emulator smoke + Rules deny-write — **הושלמה**.  
 **ביצועים (mutations):** רענון קל — patch יתרות מהשרת + `listEntries` — **P1A (create) + P1B (approve/reject/cancel/edit)**.  
 **עלות Firebase:** baseline סיכון עלות נבדק — סיכון MVP **LOW**; pagination נדחה עד שימוש אמיתי או ~100–200 רשומות/כרטיס ([PERF_BASELINE.md](./PERF_BASELINE.md) — Firebase Cost Risk Baseline).  
-**Repo (מאי 2026):** `HEAD` **`55cbaef`** — working tree נקי; **build/lint/test gate PASS** ([PERF_BASELINE.md](./PERF_BASELINE.md) — Repo verification gate). **לא** בוצע deploy; **2D-1** לא התחיל.  
+**Repo (מאי 2026):** `HEAD` **`610815f`** — build/lint/test gate PASS ([PERF_BASELINE.md](./PERF_BASELINE.md) — Repo verification gate @ `55cbaef` + תיעוד gate @ `610815f`).  
+**Production hosting (נעול):** UI → **Vercel**; Backend → Firebase `account-card-18e3a` ([DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md)). **לא** Firebase Hosting / App Hosting / VPS ל-MVP. **לא** בוצע deploy production; **2D-1** לא התחיל.  
 שלב חדש **לא** מתחיל בלי אישור מפורש (כולל **2D-1**).
 
 ### אימות 2B-4 (בוצע בפועל)
@@ -193,10 +194,15 @@
 | **2D-P1A** | Light refresh אחרי `createEntry` — יתרות ב-response + patch + `listEntries` — **סגור** |
 | **2D-P1B** | Light refresh אחרי approve/reject/cancel/edit — אותו דפוס + `refreshAfterEntryMutation` — **סגור** |
 
-## Firebase
+## Firebase + Hosting
 
-- **פרויקט:** `account-card-18e3a`
-- **Functions:** `health`, `createAccountCard`, `createInvitation`, `getInvitationPreview`, `acceptInvitation`, `createEntry`, `approveEntry`, `rejectEntry`, `cancelEntry`, **`editEntry`** — `europe-west1` (P1B: ארבעת mutations עם תשובת יתרות — deployed)
+- **פרויקט Firebase:** `account-card-18e3a`
+- **UI production:** **Vercel** (Next.js 16 App Router) — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md)
+- **לא ב-repo:** בלוק `hosting` ב-`firebase.json`; **לא** `apphosting.yaml`; **לא** VPS ל-MVP
+- **Functions region:** `europe-west1`
+- **Functions:** `health`, `createAccountCard`, `createInvitation`, `getInvitationPreview`, `acceptInvitation`, `createEntry`, `approveEntry`, `rejectEntry`, `cancelEntry`, **`editEntry`** (P1B: ארבעת mutations עם תשובת יתרות — deployed ב-Firebase; UI production עדיין לא נפרס ל-Vercel)
+- **פרמטר Functions:** `APP_BASE_URL=https://<production-domain>` (חובה לפני הזמנות בפרודקשן)
+- **Auth:** Authorized domains — לכלול דומיין Vercel production + custom
 
 ## מה לא לבנות עכשיו
 
@@ -206,6 +212,7 @@
 
 ## השלב הבא
 
+**Production deploy (כשמאושר):** לפי [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md) — pre-flight → rules/indexes → functions → Vercel → smoke.  
 **2D-1 — Balance & Permission Function Tests** — מסלול בדיקות Functions מומלץ — **לא מתחילים בלי אישור מפורש**.
 
 ## מסמכים
@@ -225,3 +232,4 @@
 | [TRUTH_DATASET.md](./TRUTH_DATASET.md) | רגרסיה יתרות Yossi/Stav |
 | [STAGE2B-3_JOIN_PREVIEW.md](./STAGE2B-3_JOIN_PREVIEW.md) | Join preview — סגור |
 | [ROADMAP.md](./ROADMAP.md) | Roadmap |
+| [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md) | החלטת hosting — Vercel + Firebase |

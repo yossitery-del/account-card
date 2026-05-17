@@ -25,9 +25,11 @@
 | **2D-P1A — Light Refresh (createEntry)** | **סגור (QA PASS)** — [מסמך](STAGE2D-P1A_LIGHT_REFRESH_CREATE.md) |
 | **2D-P1B — Light Refresh (approve/reject/cancel/edit)** | **מיושם + deployed — סגור (QA PASS)** — [מסמך](STAGE2D-P1B_LIGHT_REFRESH_MUTATIONS.md) |
 | **2D-1 — Balance & Permission Function Tests** | **הבא מומלץ** — לא להתחיל בלי אישור מפורש |
+| **Production hosting** | **נעול** — UI **Vercel**; Backend **Firebase** `account-card-18e3a` — [DEPLOY_HOSTING.md](DEPLOY_HOSTING.md) |
 | 2C+ | PDF, encryption, תצוגות מתקדמות — עתידי |
 
 **פעיל עכשיו:** **אין שלב מוצר פתוח** — מעגל pending (2C) סגור; 2D-0, 2D-P1A, 2D-P1B סגורים. שלב חדש (כולל 2D-1) רק באישור מפורש.  
+**Production UI:** Vercel — **לא** Firebase Hosting / App Hosting / VPS (MVP). Deploy production **לא** בוצע (תיעוד בלבד).  
 **2B-3.1** — רק אחרי ש-Join Preview יציב; **לא לבנות עכשיו**.
 
 ---
@@ -108,6 +110,20 @@
 **2D-1:** Balance & Permission Function Tests — **הבא מומלץ** — **לא להתחיל בלי אישור מפורש**.
 
 פירוט: [STAGE2D_RELIABILITY_PRODUCT_SAFETY.md](./STAGE2D_RELIABILITY_PRODUCT_SAFETY.md).
+
+---
+
+## Production deploy — hosting (נעול, מאי 2026)
+
+| נושא | החלטה |
+|------|--------|
+| **UI** | **Vercel** — Next.js 16 App Router |
+| **Backend** | Firebase `account-card-18e3a` — Auth, Firestore, Rules, Indexes, Functions |
+| **Functions region** | `europe-west1` |
+| **לא בשימוש** | Firebase Hosting block; App Hosting / `apphosting.yaml`; VPS |
+
+**מסמך מלא:** [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md) — env vars, `APP_BASE_URL`, authorized domains, סדר deploy, smoke.  
+**סטטוס:** תיעוד בלבד — **לא** deploy; **2D-1** לא התחיל.
 
 ---
 

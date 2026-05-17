@@ -4,7 +4,8 @@
 
 **סביבה:** development, React Strict Mode פעיל — `calls: 2` אפשרי בטעינת עמוד; לא משקף production ב-100%.
 
-**פרויקט:** `account-card-18e3a` · Functions region: `europe-west1` · **ללא** Functions Emulator (`NEXT_PUBLIC_USE_FUNCTIONS_EMULATOR` לא מוגדר).
+**פרויקט:** `account-card-18e3a` · Functions region: `europe-west1` · **ללא** Functions Emulator (`NEXT_PUBLIC_USE_FUNCTIONS_EMULATOR` לא מוגדר).  
+**Production UI (נעול):** **Vercel** — מדידות במסמך זה מ-`npm run dev` בלבד; production — [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md), מדידת `npm start` / Vercel — עתידי (**2D-3**).
 
 ---
 
@@ -133,6 +134,7 @@ Min instances — **לא** בוצע (מחוץ ל-P1A).
 
 ## קישורים
 
+- [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md) — Vercel + Firebase production
 - [STAGE2D-P1A_LIGHT_REFRESH_CREATE.md](./STAGE2D-P1A_LIGHT_REFRESH_CREATE.md) — סגירת P1A
 - [STAGE2D-P1B_LIGHT_REFRESH_MUTATIONS.md](./STAGE2D-P1B_LIGHT_REFRESH_MUTATIONS.md) — סגירת P1B
 - [STAGE2D_RELIABILITY_PRODUCT_SAFETY.md](./STAGE2D_RELIABILITY_PRODUCT_SAFETY.md) — תכנון 2D
