@@ -10,20 +10,11 @@ import {
 } from "firebase/firestore";
 import { withPerf, withPerfStep } from "@/lib/dev/perfLog";
 import { getFirestoreDb } from "@/lib/firebase/client";
-import { parseViewerPendingSummary } from "@/lib/cards/parseViewerPendingSummary";
+import {
+  buildAccountCardSummary,
+  sortAccountCardSummaries,
+} from "@/lib/cards/accountCardSummary";
 import type { AccountCard, AccountCardSummary } from "@/types/card";
-
-function toMillis(value: unknown): number {
-  if (
-    value &&
-    typeof value === "object" &&
-    "toMillis" in value &&
-    typeof (value as { toMillis: () => number }).toMillis === "function"
-  ) {
-    return (value as { toMillis: () => number }).toMillis();
-  }
-  return 0;
-}
 
 /**
  * כרטיסים שבהם המשתמש participant פעיל (collection group).
@@ -78,19 +69,13 @@ export async function listUserCards(uid: string): Promise<AccountCardSummary[]> 
     const summaries: AccountCardSummary[] = [];
     for (const cardSnap of cardSnaps) {
       if (!cardSnap.exists()) continue;
-      const data = cardSnap.data() as AccountCard;
-      summaries.push({
-        id: cardSnap.id,
-        title: data.title,
-        balancePerspectiveUid: data.balancePerspectiveUid,
-        officialBalance: data.officialBalance,
-        pendingBalanceImpact: data.pendingBalanceImpact,
-        updatedAt: data.updatedAt,
-        pendingAwaitingMyApproval: parseViewerPendingSummary(
-          data.dashboardPendingSummaryByUid,
+      summaries.push(
+        buildAccountCardSummary(
+          cardSnap.id,
+          cardSnap.data() as AccountCard,
           uid
-        ),
-      });
+        )
+      );
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -102,8 +87,6 @@ export async function listUserCards(uid: string): Promise<AccountCardSummary[]> 
       });
     }
 
-    summaries.sort((a, b) => toMillis(b.updatedAt) - toMillis(a.updatedAt));
-
-    return summaries;
+    return sortAccountCardSummaries(summaries);
   });
 }

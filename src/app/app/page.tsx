@@ -10,6 +10,10 @@ import { DevAuthIdentity } from "@/components/dev/DevAuthIdentity";
 import { LoadingVault } from "@/components/ui/LoadingVault";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { FunctionsHealthDebug } from "@/components/dev/FunctionsHealthDebug";
+import {
+  refreshDashboardCardInPlace,
+  replaceDashboardCard,
+} from "@/lib/cards/refreshDashboardCard";
 import { listUserCards } from "@/lib/cards/listUserCards";
 import type { AccountCardSummary } from "@/types/card";
 
@@ -23,13 +27,34 @@ export default function AppPage() {
 
   const authUid = user?.uid ?? null;
 
-  const refreshCards = useCallback(async () => {
+  const reloadAllCards = useCallback(async (): Promise<AccountCardSummary[]> => {
     if (!authUid) {
-      return;
+      return [];
     }
-    const list = await listUserCards(authUid);
-    setCards(list);
+    return listUserCards(authUid);
   }, [authUid]);
+
+  const refreshCard = useCallback(
+    async (cardId: string) => {
+      if (!authUid) {
+        return;
+      }
+
+      const result = await refreshDashboardCardInPlace({
+        cardId,
+        viewerUid: authUid,
+        reloadAllCards,
+      });
+
+      if (result.kind === "full") {
+        setCards(result.cards);
+        return;
+      }
+
+      setCards((prev) => replaceDashboardCard(prev, result.updated));
+    },
+    [authUid, reloadAllCards]
+  );
 
   useEffect(() => {
     if (authLoading) {
@@ -103,7 +128,7 @@ export default function AppPage() {
               <CardList
                 cards={cards}
                 viewerUid={authUid!}
-                onCardsRefresh={refreshCards}
+                onCardRefresh={refreshCard}
               />
             )}
           </>

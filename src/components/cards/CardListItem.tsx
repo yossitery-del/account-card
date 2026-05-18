@@ -27,7 +27,7 @@ import type { AccountCardSummary } from "@/types/card";
 type CardListItemProps = {
   card: AccountCardSummary;
   viewerUid: string;
-  onCardsRefresh: () => Promise<void>;
+  onCardRefresh: (cardId: string) => Promise<void>;
 };
 
 type QuickActionKind = "approve" | "reject";
@@ -35,7 +35,7 @@ type QuickActionKind = "approve" | "reject";
 export function CardListItem({
   card,
   viewerUid,
-  onCardsRefresh,
+  onCardRefresh,
 }: CardListItemProps) {
   const { user } = useAuth();
   const [busyKind, setBusyKind] = useState<QuickActionKind | null>(null);
@@ -101,7 +101,7 @@ export function CardListItem({
         } else {
           await rejectEntry(user, card.id, quickActionTarget.entryId);
         }
-        await onCardsRefresh();
+        await onCardRefresh(card.id);
       } catch (err) {
         setActionError(
           err instanceof Error
@@ -114,7 +114,7 @@ export function CardListItem({
         setBusyKind(null);
       }
     },
-    [user, quickActionTarget, isBusy, card.id, onCardsRefresh]
+    [user, quickActionTarget, isBusy, card.id, onCardRefresh]
   );
 
   return (
