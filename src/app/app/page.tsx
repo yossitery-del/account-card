@@ -4,6 +4,7 @@ import { startTransition, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AppShellHeader } from "@/components/cards/AppShellHeader";
 import { CardList } from "@/components/cards/CardList";
+import { DashboardHeader } from "@/components/cards/DashboardHeader";
 import { EmptyCardsState } from "@/components/cards/EmptyCardsState";
 import { DevAuthIdentity } from "@/components/dev/DevAuthIdentity";
 import { LoadingVault } from "@/components/ui/LoadingVault";
@@ -81,10 +82,17 @@ export default function AppPage() {
           <p className="text-center text-sm text-[var(--color-muted-rose)]" role="alert">
             {error}
           </p>
-        ) : cards.length === 0 ? (
-          <EmptyCardsState />
         ) : (
-          <CardList cards={cards} viewerUid={authUid!} />
+          <>
+            {authUid ? (
+              <DashboardHeader cards={cards} viewerUid={authUid} />
+            ) : null}
+            {cards.length === 0 ? (
+              <EmptyCardsState />
+            ) : (
+              <CardList cards={cards} viewerUid={authUid!} />
+            )}
+          </>
         )}
 
         {isDev ? <FunctionsHealthDebug /> : null}

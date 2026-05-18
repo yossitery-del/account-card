@@ -7,7 +7,7 @@ export function EmptyCardsState() {
         עדיין אין כרטיסים
       </p>
       <p className="mb-6 text-sm leading-relaxed text-[var(--color-mist)]">
-        פתח כרטיס חשבון ראשון כדי להתחיל פנקס משותף.
+        פתח כרטיס חשבון ראשון כדי להתחיל חשבון משותף מסודר.
       </p>
       <Link
         href="/app/cards/new"
