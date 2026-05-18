@@ -149,3 +149,39 @@ export function getDashboardPendingForCard(
 ): DashboardPendingCardSummary | null {
   return pendingByCard[cardId] ?? null;
 }
+
+function firebaseErrorCode(err: unknown): string | null {
+  if (err && typeof err === "object" && "code" in err) {
+    return String((err as { code: string }).code);
+  }
+  return null;
+}
+
+/** אזהרת dev בלבד — ללא זריקה החוצה */
+export function warnDashboardPendingDiscoveryFailure(err: unknown): void {
+  if (process.env.NODE_ENV !== "development") {
+    return;
+  }
+  console.warn(
+    "[dashboard] pending discovery failed (fail-soft, cards still load):",
+    {
+      code: firebaseErrorCode(err),
+      message: err instanceof Error ? err.message : String(err),
+    }
+  );
+}
+
+/**
+ * גילוי pending לדשבורד — לא חוסם טעינת כרטיסים.
+ * על כשל: מחזיר מפה ריקה (ללא Quick Review).
+ */
+export async function listDashboardPendingEntriesSafe(
+  viewerUid: string
+): Promise<DashboardPendingByCard> {
+  try {
+    return await listDashboardPendingEntries(viewerUid);
+  } catch (err) {
+    warnDashboardPendingDiscoveryFailure(err);
+    return {};
+  }
+}

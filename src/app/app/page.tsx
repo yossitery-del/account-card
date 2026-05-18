@@ -11,7 +11,7 @@ import { LoadingVault } from "@/components/ui/LoadingVault";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { FunctionsHealthDebug } from "@/components/dev/FunctionsHealthDebug";
 import {
-  listDashboardPendingEntries,
+  listDashboardPendingEntriesSafe,
   type DashboardPendingByCard,
 } from "@/lib/cards/dashboardPending";
 import { listUserCards } from "@/lib/cards/listUserCards";
@@ -53,26 +53,31 @@ export default function AppPage() {
     });
 
     void (async () => {
+      let list: AccountCardSummary[] = [];
+      let pending: DashboardPendingByCard = {};
+
       try {
-        const [list, pending] = await Promise.all([
-          listUserCards(authUid),
-          listDashboardPendingEntries(authUid),
-        ]);
-        if (!cancelled) {
-          setCards(list);
-          setPendingByCard(pending);
-        }
+        list = await listUserCards(authUid);
       } catch (err) {
-        console.error("dashboard load failed:", err);
+        console.error("listUserCards failed:", err);
         if (!cancelled) {
           setError("לא הצלחנו לטעון את הכרטיסים. נסה שוב.");
           setCards([]);
           setPendingByCard({});
         }
-      } finally {
         if (!cancelled) {
           setLoading(false);
         }
+        return;
+      }
+
+      pending = await listDashboardPendingEntriesSafe(authUid);
+
+      if (!cancelled) {
+        setCards(list);
+        setPendingByCard(pending);
+        setError(null);
+        setLoading(false);
       }
     })();
 
