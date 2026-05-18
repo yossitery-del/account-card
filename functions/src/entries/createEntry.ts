@@ -9,7 +9,10 @@ import {
   parseEntryIntent,
   resolveTypeFromIntent,
 } from "../lib/entryIntent";
-import {applyDashboardPendingSummaryInTransaction} from "../lib/recomputeDashboardPendingSummary";
+import {
+  buildDashboardPendingSummaryFields,
+  loadDashboardPendingSummaryInputs,
+} from "../lib/recomputeDashboardPendingSummary";
 import {readEntryMutationBalances} from "../lib/entryMutationBalances";
 import {parseCardId} from "../lib/validators";
 
@@ -114,7 +117,11 @@ export const createEntry = onCall(
     const now = FieldValue.serverTimestamp();
 
     await db.runTransaction(async (transaction: Transaction) => {
-      const cardSnap = await transaction.get(cardRef);
+      const [cardSnap, summaryInputs] = await Promise.all([
+        transaction.get(cardRef),
+        loadDashboardPendingSummaryInputs(transaction, cardRef),
+      ]);
+
       if (!cardSnap.exists) {
         throw new HttpsError("not-found", "הכרטיס לא נמצא");
       }
@@ -141,6 +148,26 @@ export const createEntry = onCall(
           card.pendingBalanceImpact :
           0;
 
+      const pendingEntriesAfterCreate = [
+        ...summaryInputs.pendingEntries,
+        {
+          id: entryId,
+          status: "pending",
+          title,
+          amount,
+          effectOnPerspectiveBalance,
+          entryDate: now,
+          createdAt: now,
+          createdByUid: uid,
+        },
+      ];
+
+      const summaryFields = buildDashboardPendingSummaryFields(
+        pendingEntriesAfterCreate,
+        summaryInputs.activeParticipants,
+        now
+      );
+
       transaction.set(entryRef, {
         type,
         amount,
@@ -162,9 +189,8 @@ export const createEntry = onCall(
       transaction.update(cardRef, {
         pendingBalanceImpact: currentPending + delta,
         updatedAt: now,
+        ...summaryFields,
       });
-
-      await applyDashboardPendingSummaryInTransaction(transaction, cardRef, now);
 
       transaction.set(auditRef, {
         action: "entry.created",

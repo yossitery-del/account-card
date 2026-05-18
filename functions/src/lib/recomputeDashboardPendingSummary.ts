@@ -1,6 +1,7 @@
 import {
   DocumentReference,
   FieldValue,
+  QuerySnapshot,
   Timestamp,
   Transaction,
 } from "firebase-admin/firestore";
@@ -26,7 +27,7 @@ export type DashboardPendingSummaryByUid = Record<
   ParticipantDashboardPendingSummary
 >;
 
-type PendingEntryRow = {
+export type PendingEntryRow = {
   id: string;
   status?: string;
   title?: string;
@@ -37,10 +38,20 @@ type PendingEntryRow = {
   createdByUid?: string;
 };
 
-type ActiveParticipantRow = {
+export type ActiveParticipantRow = {
   id: string;
   status?: string;
   permissions?: {canApprove?: boolean};
+};
+
+export type DashboardPendingSummaryInputs = {
+  pendingEntries: PendingEntryRow[];
+  activeParticipants: ActiveParticipantRow[];
+};
+
+export type DashboardPendingSummaryFields = {
+  dashboardPendingSummaryByUid: DashboardPendingSummaryByUid;
+  dashboardPendingSummaryUpdatedAt: FieldValue | Timestamp;
 };
 
 function participantCanApprove(participant: ActiveParticipantRow): boolean {
@@ -81,6 +92,61 @@ function toEntryPreview(row: PendingEntryRow): DashboardPendingEntryPreview | nu
     createdByUid: row.createdByUid,
     status: "pending",
   };
+}
+
+export function pendingRowsFromSnapshot(
+  snap: QuerySnapshot
+): PendingEntryRow[] {
+  return snap.docs.map((doc) => ({
+    id: doc.id,
+    ...(doc.data() as Omit<PendingEntryRow, "id">),
+  }));
+}
+
+export function activeParticipantsFromSnapshot(
+  snap: QuerySnapshot
+): ActiveParticipantRow[] {
+  return snap.docs.map((doc) => ({
+    id: doc.id,
+    ...(doc.data() as Omit<ActiveParticipantRow, "id">),
+  }));
+}
+
+/**
+ * קריאות בלבד — חייב להיקרא לפני כל כתיבה בטרנזקציה.
+ */
+export async function loadDashboardPendingSummaryInputs(
+  transaction: Transaction,
+  cardRef: DocumentReference
+): Promise<DashboardPendingSummaryInputs> {
+  const [pendingSnap, participantsSnap] = await Promise.all([
+    transaction.get(
+      cardRef.collection("entries").where("status", "==", "pending")
+    ),
+    transaction.get(
+      cardRef.collection("participants").where("status", "==", "active")
+    ),
+  ]);
+
+  return {
+    pendingEntries: pendingRowsFromSnapshot(pendingSnap),
+    activeParticipants: activeParticipantsFromSnapshot(participantsSnap),
+  };
+}
+
+export function excludePendingEntryById(
+  rows: PendingEntryRow[],
+  entryId: string
+): PendingEntryRow[] {
+  return rows.filter((row) => row.id !== entryId);
+}
+
+export function upsertPendingEntryRow(
+  rows: PendingEntryRow[],
+  row: PendingEntryRow
+): PendingEntryRow[] {
+  const without = rows.filter((existing) => existing.id !== row.id);
+  return [...without, row];
 }
 
 /**
@@ -138,40 +204,11 @@ export function buildDashboardPendingSummaryByUid(
   return result;
 }
 
-export type DashboardPendingSummaryFields = {
-  dashboardPendingSummaryByUid: DashboardPendingSummaryByUid;
-  dashboardPendingSummaryUpdatedAt: FieldValue | Timestamp;
-};
-
-/**
- * קורא pending entries + משתתפים פעילים בתוך טרנזקציה ומחזיר שדות לעדכון כרטיס.
- */
-export async function loadDashboardPendingSummaryFields(
-  transaction: Transaction,
-  cardRef: DocumentReference,
+export function buildDashboardPendingSummaryFields(
+  pendingEntries: PendingEntryRow[],
+  activeParticipants: ActiveParticipantRow[],
   now: FieldValue | Timestamp = FieldValue.serverTimestamp()
-): Promise<DashboardPendingSummaryFields> {
-  const [pendingSnap, participantsSnap] = await Promise.all([
-    transaction.get(
-      cardRef.collection("entries").where("status", "==", "pending")
-    ),
-    transaction.get(
-      cardRef.collection("participants").where("status", "==", "active")
-    ),
-  ]);
-
-  const pendingEntries: PendingEntryRow[] = pendingSnap.docs.map((doc) => ({
-    id: doc.id,
-    ...(doc.data() as Omit<PendingEntryRow, "id">),
-  }));
-
-  const activeParticipants: ActiveParticipantRow[] = participantsSnap.docs.map(
-    (doc) => ({
-      id: doc.id,
-      ...(doc.data() as Omit<ActiveParticipantRow, "id">),
-    })
-  );
-
+): DashboardPendingSummaryFields {
   return {
     dashboardPendingSummaryByUid: buildDashboardPendingSummaryByUid(
       pendingEntries,
@@ -179,16 +216,4 @@ export async function loadDashboardPendingSummaryFields(
     ),
     dashboardPendingSummaryUpdatedAt: now,
   };
-}
-
-/**
- * מעדכן dashboardPendingSummaryByUid על הכרטיס באותה טרנזקציה.
- */
-export async function applyDashboardPendingSummaryInTransaction(
-  transaction: Transaction,
-  cardRef: DocumentReference,
-  now: FieldValue | Timestamp = FieldValue.serverTimestamp()
-): Promise<void> {
-  const fields = await loadDashboardPendingSummaryFields(transaction, cardRef, now);
-  transaction.update(cardRef, fields);
 }

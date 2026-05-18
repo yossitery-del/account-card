@@ -16,7 +16,11 @@ import {
   type EntryIntent,
   type EntryType,
 } from "../lib/entryIntent";
-import {applyDashboardPendingSummaryInTransaction} from "../lib/recomputeDashboardPendingSummary";
+import {
+  buildDashboardPendingSummaryFields,
+  loadDashboardPendingSummaryInputs,
+  upsertPendingEntryRow,
+} from "../lib/recomputeDashboardPendingSummary";
 import {readEntryMutationBalances} from "../lib/entryMutationBalances";
 import {parseEditEntryPayload} from "../lib/parseEditEntryPayload";
 
@@ -72,9 +76,10 @@ export const editEntry = onCall(
     const now = FieldValue.serverTimestamp();
 
     await db.runTransaction(async (transaction: Transaction) => {
-      const [cardSnap, entrySnap] = await Promise.all([
+      const [cardSnap, entrySnap, summaryInputs] = await Promise.all([
         transaction.get(cardRef),
         transaction.get(entryRef),
+        loadDashboardPendingSummaryInputs(transaction, cardRef),
       ]);
 
       if (!cardSnap.exists) {
@@ -139,6 +144,26 @@ export const editEntry = onCall(
         throw new HttpsError("failed-precondition", "לא בוצע שינוי");
       }
 
+      const pendingEntriesAfterEdit = upsertPendingEntryRow(
+        summaryInputs.pendingEntries,
+        {
+          id: entryId,
+          status: "pending",
+          title,
+          amount,
+          effectOnPerspectiveBalance: effectAfter,
+          entryDate: entry.entryDate,
+          createdAt: entry.createdAt,
+          createdByUid,
+        }
+      );
+
+      const summaryFields = buildDashboardPendingSummaryFields(
+        pendingEntriesAfterEdit,
+        summaryInputs.activeParticipants,
+        now
+      );
+
       transaction.update(entryRef, {
         intent,
         type: typeAfter,
@@ -154,9 +179,8 @@ export const editEntry = onCall(
       transaction.update(cardRef, {
         pendingBalanceImpact: FieldValue.increment(deltaAdjustment),
         updatedAt: now,
+        ...summaryFields,
       });
-
-      await applyDashboardPendingSummaryInTransaction(transaction, cardRef, now);
 
       transaction.set(auditRef, {
         action: "entry.edited",

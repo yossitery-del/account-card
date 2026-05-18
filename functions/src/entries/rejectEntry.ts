@@ -8,7 +8,11 @@ import {
 import {db, FUNCTIONS_REGION} from "../lib/admin";
 import {parseEntryActionPayload} from "../lib/entryActionPayload";
 import {requireAuthUid} from "../lib/auth";
-import {applyDashboardPendingSummaryInTransaction} from "../lib/recomputeDashboardPendingSummary";
+import {
+  buildDashboardPendingSummaryFields,
+  excludePendingEntryById,
+  loadDashboardPendingSummaryInputs,
+} from "../lib/recomputeDashboardPendingSummary";
 import {readEntryMutationBalances} from "../lib/entryMutationBalances";
 import {parseCardId, parseEntryId, parseRejectionNote} from "../lib/validators";
 
@@ -43,9 +47,10 @@ export const rejectEntry = onCall(
     const now = FieldValue.serverTimestamp();
 
     await db.runTransaction(async (transaction: Transaction) => {
-      const [cardSnap, entrySnap] = await Promise.all([
+      const [cardSnap, entrySnap, summaryInputs] = await Promise.all([
         transaction.get(cardRef),
         transaction.get(entryRef),
+        loadDashboardPendingSummaryInputs(transaction, cardRef),
       ]);
 
       if (!cardSnap.exists) {
@@ -68,6 +73,17 @@ export const rejectEntry = onCall(
       const amount = entry.amount as number;
       const effectOnPerspectiveBalance = entry.effectOnPerspectiveBalance as string;
 
+      const pendingEntriesAfterResolve = excludePendingEntryById(
+        summaryInputs.pendingEntries,
+        entryId
+      );
+
+      const summaryFields = buildDashboardPendingSummaryFields(
+        pendingEntriesAfterResolve,
+        summaryInputs.activeParticipants,
+        now
+      );
+
       transaction.update(entryRef, {
         status: "rejected",
         rejectedByUid: uid,
@@ -78,9 +94,8 @@ export const rejectEntry = onCall(
       transaction.update(cardRef, {
         pendingBalanceImpact: FieldValue.increment(-delta),
         updatedAt: now,
+        ...summaryFields,
       });
-
-      await applyDashboardPendingSummaryInTransaction(transaction, cardRef, now);
 
       transaction.set(auditRef, {
         action: "entry.rejected",

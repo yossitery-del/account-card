@@ -9,7 +9,11 @@ import {db, FUNCTIONS_REGION} from "../lib/admin";
 import {requireAuthUid} from "../lib/auth";
 import {emailDomain, profileFromToken} from "../lib/profileFromToken";
 import {parseInviteToken} from "../lib/parseInviteToken";
-import {applyDashboardPendingSummaryInTransaction} from "../lib/recomputeDashboardPendingSummary";
+import {
+  activeParticipantsFromSnapshot,
+  buildDashboardPendingSummaryFields,
+  pendingRowsFromSnapshot,
+} from "../lib/recomputeDashboardPendingSummary";
 import {hashInviteToken} from "../lib/tokens";
 
 export type AcceptInvitationInput = {
@@ -111,15 +115,23 @@ export const acceptInvitation = onCall(
     return db.runTransaction(async (transaction: Transaction) => {
       const nowMs = Date.now();
 
-      const [inviteTxSnap, cardTxSnap, participantTxSnap, activeParticipantsSnap] =
-        await Promise.all([
-          transaction.get(inviteRef),
-          transaction.get(cardRef),
-          transaction.get(participantRef),
-          transaction.get(
-            cardRef.collection("participants").where("status", "==", "active")
-          ),
-        ]);
+      const [
+        inviteTxSnap,
+        cardTxSnap,
+        participantTxSnap,
+        activeParticipantsSnap,
+        pendingEntriesSnap,
+      ] = await Promise.all([
+        transaction.get(inviteRef),
+        transaction.get(cardRef),
+        transaction.get(participantRef),
+        transaction.get(
+          cardRef.collection("participants").where("status", "==", "active")
+        ),
+        transaction.get(
+          cardRef.collection("entries").where("status", "==", "pending")
+        ),
+      ]);
 
       if (!inviteTxSnap.exists) {
         throw new HttpsError("not-found", MSG_INVALID);
@@ -164,6 +176,23 @@ export const acceptInvitation = onCall(
       const now = FieldValue.serverTimestamp();
       const auditAcceptedRef = cardRef.collection("auditEvents").doc();
       const auditParticipantRef = cardRef.collection("auditEvents").doc();
+
+      const activeParticipants = activeParticipantsFromSnapshot(
+        activeParticipantsSnap
+      );
+      if (!activeParticipants.some((p) => p.id === uid)) {
+        activeParticipants.push({
+          id: uid,
+          status: "active",
+          permissions: {canApprove: true},
+        });
+      }
+
+      const summaryFields = buildDashboardPendingSummaryFields(
+        pendingRowsFromSnapshot(pendingEntriesSnap),
+        activeParticipants,
+        now
+      );
 
       transaction.set(participantRef, {
         uid,
@@ -210,7 +239,7 @@ export const acceptInvitation = onCall(
         metadata: {role: "participant"},
       });
 
-      await applyDashboardPendingSummaryInTransaction(transaction, cardRef, now);
+      transaction.update(cardRef, summaryFields);
 
       return {cardId};
     });
