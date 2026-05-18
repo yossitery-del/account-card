@@ -1,5 +1,7 @@
 /** כרטיס חשבון משותף — Stage 2A */
 
+import type { EntryEffect } from "./entry";
+
 export type AccountCardStatus = "active" | "archived" | "pending_second_party";
 export type ParticipantRole = "owner" | "participant";
 export type ParticipantStatus = "active" | "left" | "removed";
@@ -9,6 +11,24 @@ export type ParticipantPermissions = {
   canAddEntry: boolean;
   canApprove: boolean;
   canInvite: boolean;
+};
+
+/** תצוגת רשומה ממתינה לבדיקה — מסונכרן מ-Functions ב-dashboardPendingSummaryByUid */
+export type DashboardPendingEntryPreview = {
+  entryId: string;
+  title: string;
+  amount: number;
+  effectOnPerspectiveBalance: EntryEffect;
+  entryDate: unknown;
+  createdAt: unknown;
+  createdByUid: string;
+  status: "pending";
+};
+
+/** סיכום ממתין לבדיקה עבור משתתף בודד (לא ממפה את כל המשתתפים) */
+export type ViewerPendingAwaitingMyApproval = {
+  pendingAwaitingMyApprovalCount: number;
+  pendingAwaitingMyApproval?: DashboardPendingEntryPreview | null;
 };
 
 export type AccountCard = {
@@ -23,6 +43,8 @@ export type AccountCard = {
   pendingBalanceImpact: number;
   encryptionMode: EncryptionMode;
   dataSchemaVersion: number;
+  dashboardPendingSummaryByUid?: Record<string, ViewerPendingAwaitingMyApproval>;
+  dashboardPendingSummaryUpdatedAt?: unknown;
 };
 
 export type CardParticipant = {
@@ -44,4 +66,6 @@ export type AccountCardSummary = {
   officialBalance: number;
   pendingBalanceImpact: number;
   updatedAt: unknown;
+  /** סיכום ממתין לבדיקה עבור הצופה הנוכחי בלבד */
+  pendingAwaitingMyApproval: ViewerPendingAwaitingMyApproval;
 };

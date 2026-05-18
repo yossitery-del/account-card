@@ -13,16 +13,12 @@ import type { AccountCardSummary } from "@/types/card";
 
 type DashboardCommandCenterProps = {
   cards: AccountCardSummary[];
-  viewerUid: string;
 };
 
 /**
  * מרכז פיקוד — סטטוס ראשון, ברכה משנית, ללא מסגרת כרטיס.
  */
-export function DashboardCommandCenter({
-  cards,
-  viewerUid,
-}: DashboardCommandCenterProps) {
+export function DashboardCommandCenter({ cards }: DashboardCommandCenterProps) {
   const { user } = useAuth();
   const [clockAt, setClockAt] = useState(() => Date.now());
 
@@ -41,10 +37,7 @@ export function DashboardCommandCenter({
     return formatAccountGreeting(user.displayName, user.email, now);
   }, [user, now]);
 
-  const stats = useMemo(
-    () => computeDashboardStats(cards, viewerUid),
-    [cards, viewerUid]
-  );
+  const stats = useMemo(() => computeDashboardStats(cards), [cards]);
 
   const statusPrimary = primaryStatusMessage(stats.cardsWithPending);
   const cardsMeta = activeCardsMeta(stats.activeCardCount);

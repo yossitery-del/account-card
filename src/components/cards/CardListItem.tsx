@@ -6,7 +6,6 @@ import {
 } from "@/lib/balance/viewerDelta";
 import { cardsCopy } from "@/lib/cards/cardsCopy";
 import { dashboardCopy } from "@/lib/cards/dashboardCopy";
-import type { DashboardPendingCardSummary } from "@/lib/cards/dashboardPending";
 import {
   formatOfficialBalanceAmount,
   formatPendingBalanceDisplay,
@@ -20,16 +19,9 @@ import type { AccountCardSummary } from "@/types/card";
 type CardListItemProps = {
   card: AccountCardSummary;
   viewerUid: string;
-  hasPending: boolean;
-  pendingSummary: DashboardPendingCardSummary | null;
 };
 
-export function CardListItem({
-  card,
-  viewerUid,
-  hasPending,
-  pendingSummary,
-}: CardListItemProps) {
+export function CardListItem({ card, viewerUid }: CardListItemProps) {
   const official = formatOfficialBalanceAmount(
     card.officialBalance,
     viewerUid,
@@ -41,8 +33,17 @@ export function CardListItem({
     card.balancePerspectiveUid
   );
 
-  const awaitingCount = pendingSummary?.pendingAwaitingMyApprovalCount ?? 0;
-  const singleAwaiting = pendingSummary?.pendingAwaitingMyApproval;
+  const awaiting = card.pendingAwaitingMyApproval;
+  const awaitingCount = awaiting.pendingAwaitingMyApprovalCount;
+  const hasAwaitingApproval = awaitingCount > 0;
+  const hasFinancialPending =
+    toViewerDelta(
+      card.pendingBalanceImpact,
+      viewerUid,
+      card.balancePerspectiveUid
+    ) !== 0;
+
+  const singleAwaiting = awaiting.pendingAwaitingMyApproval;
   const singleAwaitingDate = singleAwaiting
     ? getEntryDisplayDate(singleAwaiting)
     : null;
@@ -67,12 +68,12 @@ export function CardListItem({
       href={`/app/cards/${card.id}`}
       aria-label={`${dashboardCopy.openCard}: ${card.title}`}
       className={`vault-account-file group relative block overflow-hidden rounded-xl p-[18px] pe-4 ps-5 transition-[border-color,box-shadow,transform] active:scale-[0.995] ${
-        hasPending ? "vault-account-file--attention" : ""
+        hasAwaitingApproval ? "vault-account-file--attention" : ""
       }`}
     >
       <span
         className={`vault-file-spine pointer-events-none absolute start-0 top-0 bottom-0 w-[3px] ${
-          hasPending ? "vault-file-spine--attention" : ""
+          hasAwaitingApproval ? "vault-file-spine--attention" : ""
         }`}
         aria-hidden
       />
@@ -84,7 +85,7 @@ export function CardListItem({
           </p>
           <h3
             className={`truncate text-lg font-semibold leading-snug transition-colors group-hover:text-[var(--color-champagne-hover)] ${
-              hasPending
+              hasAwaitingApproval
                 ? "text-[var(--color-pearl)]"
                 : "text-[var(--color-pearl)]/93"
             }`}
@@ -102,7 +103,7 @@ export function CardListItem({
 
       <div
         className={`mt-4 flex flex-col gap-2 border-t pt-3.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-4 sm:gap-y-1 ${
-          hasPending
+          hasAwaitingApproval
             ? "border-[var(--color-champagne)]/22"
             : "border-[var(--color-glass-border)]/28"
         }`}
@@ -113,7 +114,7 @@ export function CardListItem({
             {official}
           </span>
         </p>
-        {hasPending ? (
+        {hasFinancialPending ? (
           <p className="text-xs font-medium tabular-nums text-[var(--color-vault-gold-green)]">
             {cardsCopy.pendingApproval}: {pending.amount}
           </p>

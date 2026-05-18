@@ -10,10 +10,6 @@ import { DevAuthIdentity } from "@/components/dev/DevAuthIdentity";
 import { LoadingVault } from "@/components/ui/LoadingVault";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { FunctionsHealthDebug } from "@/components/dev/FunctionsHealthDebug";
-import {
-  listDashboardPendingEntriesSafe,
-  type DashboardPendingByCard,
-} from "@/lib/cards/dashboardPending";
 import { listUserCards } from "@/lib/cards/listUserCards";
 import type { AccountCardSummary } from "@/types/card";
 
@@ -22,7 +18,6 @@ const isDev = process.env.NODE_ENV === "development";
 export default function AppPage() {
   const { user, loading: authLoading } = useAuth();
   const [cards, setCards] = useState<AccountCardSummary[]>([]);
-  const [pendingByCard, setPendingByCard] = useState<DashboardPendingByCard>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +31,6 @@ export default function AppPage() {
     if (!authUid) {
       startTransition(() => {
         setCards([]);
-        setPendingByCard({});
         setLoading(false);
         setError(null);
       });
@@ -47,37 +41,25 @@ export default function AppPage() {
 
     startTransition(() => {
       setCards([]);
-      setPendingByCard({});
       setLoading(true);
       setError(null);
     });
 
     void (async () => {
-      let list: AccountCardSummary[] = [];
-      let pending: DashboardPendingByCard = {};
-
       try {
-        list = await listUserCards(authUid);
+        const list = await listUserCards(authUid);
+        if (!cancelled) {
+          setCards(list);
+          setError(null);
+          setLoading(false);
+        }
       } catch (err) {
         console.error("listUserCards failed:", err);
         if (!cancelled) {
           setError("לא הצלחנו לטעון את הכרטיסים. נסה שוב.");
           setCards([]);
-          setPendingByCard({});
-        }
-        if (!cancelled) {
           setLoading(false);
         }
-        return;
-      }
-
-      pending = await listDashboardPendingEntriesSafe(authUid);
-
-      if (!cancelled) {
-        setCards(list);
-        setPendingByCard(pending);
-        setError(null);
-        setLoading(false);
       }
     })();
 
@@ -105,16 +87,12 @@ export default function AppPage() {
         ) : (
           <>
             {authUid ? (
-              <DashboardCommandCenter cards={cards} viewerUid={authUid} />
+              <DashboardCommandCenter cards={cards} />
             ) : null}
             {cards.length === 0 ? (
               <EmptyCardsState />
             ) : (
-              <CardList
-                cards={cards}
-                viewerUid={authUid!}
-                pendingByCard={pendingByCard}
-              />
+              <CardList cards={cards} viewerUid={authUid!} />
             )}
           </>
         )}

@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 import { withPerf, withPerfStep } from "@/lib/dev/perfLog";
 import { getFirestoreDb } from "@/lib/firebase/client";
+import { parseViewerPendingSummary } from "@/lib/cards/parseViewerPendingSummary";
 import type { AccountCard, AccountCardSummary } from "@/types/card";
 
 function toMillis(value: unknown): number {
@@ -85,6 +86,10 @@ export async function listUserCards(uid: string): Promise<AccountCardSummary[]> 
         officialBalance: data.officialBalance,
         pendingBalanceImpact: data.pendingBalanceImpact,
         updatedAt: data.updatedAt,
+        pendingAwaitingMyApproval: parseViewerPendingSummary(
+          data.dashboardPendingSummaryByUid,
+          uid
+        ),
       });
     }
 

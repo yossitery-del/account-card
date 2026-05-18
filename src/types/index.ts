@@ -10,10 +10,12 @@ export type {
   AccountCardSummary,
   AccountCardStatus,
   CardParticipant,
+  DashboardPendingEntryPreview,
   EncryptionMode,
   ParticipantPermissions,
   ParticipantRole,
   ParticipantStatus,
+  ViewerPendingAwaitingMyApproval,
 } from "./card";
 
 export type { UserProfile, UserSettings } from "./user";
