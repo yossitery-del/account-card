@@ -28,7 +28,7 @@ export function CardList({ cards, viewerUid }: CardListProps) {
 
   return (
     <section aria-labelledby="dashboard-cards-heading">
-      <div className="mb-4 flex items-baseline justify-between gap-2">
+      <div className="mb-5 flex items-baseline justify-between gap-2">
         <h2
           id="dashboard-cards-heading"
           className="text-lg font-semibold text-[var(--color-pearl)]"
@@ -43,7 +43,7 @@ export function CardList({ cards, viewerUid }: CardListProps) {
       </div>
 
       {showControls ? (
-        <div className="mb-4 space-y-3">
+        <div className="mb-5 space-y-3.5">
           <label className="sr-only" htmlFor="card-search">
             {dashboardCopy.searchPlaceholder}
           </label>
@@ -80,7 +80,7 @@ export function CardList({ cards, viewerUid }: CardListProps) {
           {dashboardCopy.noFilterResults}
         </p>
       ) : (
-        <ul className="flex flex-col gap-2.5">
+        <ul className="flex flex-col gap-3">
           {filtered.map((card) => (
             <li key={card.id}>
               <CardListItem

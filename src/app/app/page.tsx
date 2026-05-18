@@ -70,7 +70,7 @@ export default function AppPage() {
   }, [authUid, authLoading]);
 
   return (
-    <main className="min-h-dvh px-6 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
+    <main className="min-h-dvh px-6 py-11 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto w-full max-w-lg">
         <DashboardToolbar />
 

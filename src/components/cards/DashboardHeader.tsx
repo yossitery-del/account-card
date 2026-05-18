@@ -57,7 +57,7 @@ export function DashboardCommandCenter({
 
   return (
     <section
-      className="vault-command-divider mb-8 border-b pb-7"
+      className="vault-command-divider mb-9 border-b pb-8"
       aria-label="מרכז פיקוד"
     >
       <div className="flex items-start gap-3">
@@ -79,7 +79,7 @@ export function DashboardCommandCenter({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs leading-relaxed text-[var(--color-mist)]">
+      <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs leading-relaxed text-[var(--color-mist)]">
         <span>{cardsMeta}</span>
         <span className="text-[var(--color-champagne)]/30" aria-hidden>
           ·

@@ -21,7 +21,7 @@ export function ProcessingOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex cursor-wait items-center justify-center bg-slate-950/70 backdrop-blur-sm pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
+      className="vault-overlay-scrim fixed inset-0 z-[100] flex cursor-wait items-center justify-center backdrop-blur-sm pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
       role="presentation"
     >
       <PremiumLoader label={label} />

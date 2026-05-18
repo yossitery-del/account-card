@@ -21,7 +21,7 @@ export function CardShareStatus({
       >
         <span className="inline-flex items-center gap-1 text-[var(--color-champagne)]/90">
           <span
-            className="h-1 w-1 shrink-0 rounded-full bg-[rgba(190,210,170,0.9)]"
+            className="h-1 w-1 shrink-0 rounded-full bg-[var(--color-vault-gold-green)]"
             aria-hidden
           />
           מחובר
@@ -40,7 +40,7 @@ export function CardShareStatus({
 
   return (
     <div
-      className="mt-2 rounded-lg border border-[var(--color-glass-border)]/50 bg-[rgba(12,14,20,0.35)] px-3.5 py-3 backdrop-blur-sm"
+      className="vault-status-surface mt-2 rounded-lg px-3.5 py-3 backdrop-blur-sm"
       aria-labelledby="share-card-heading"
     >
       <h3

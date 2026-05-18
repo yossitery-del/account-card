@@ -271,7 +271,7 @@ export function InviteForm({ cardId }: InviteFormProps) {
           {isTimeout ? (
             <Link
               href={`/app/cards/${cardId}`}
-              className="min-h-11 w-full rounded-full border border-[var(--color-glass-border)] bg-transparent px-6 py-3.5 text-center text-base font-medium text-[var(--color-mist)] transition-colors hover:bg-white/5"
+              className="min-h-11 w-full rounded-full border border-[var(--color-glass-border)] bg-transparent px-6 py-3.5 text-center text-base font-medium text-[var(--color-mist)] transition-colors hover:bg-[rgba(194,176,146,0.06)]"
             >
               {inviteCopy.backToCard}
             </Link>
@@ -335,7 +335,7 @@ export function InviteForm({ cardId }: InviteFormProps) {
           onClick={() => void handleCopyLink()}
           className={`min-h-11 w-full rounded-full border px-6 py-3.5 text-base font-medium transition-colors ${
             nativeShareAvailable
-              ? "border-[var(--color-glass-border)] bg-[var(--color-glass-surface)] text-[var(--color-pearl)] hover:bg-white/5"
+              ? "border-[var(--color-glass-border)] bg-[var(--color-glass-surface)] text-[var(--color-pearl)] hover:bg-[rgba(194,176,146,0.06)]"
               : "border-[var(--color-champagne)] bg-[var(--color-champagne)] text-[var(--color-vault-black)] hover:bg-[var(--color-champagne-hover)]"
           }`}
         >
@@ -345,7 +345,7 @@ export function InviteForm({ cardId }: InviteFormProps) {
         <button
           type="button"
           onClick={() => void handleCopyMessage()}
-          className="min-h-11 w-full rounded-full border border-[var(--color-glass-border)] bg-transparent px-6 py-3.5 text-base font-medium text-[var(--color-mist)] transition-colors hover:bg-white/5 hover:text-[var(--color-pearl)]"
+          className="min-h-11 w-full rounded-full border border-[var(--color-glass-border)] bg-transparent px-6 py-3.5 text-base font-medium text-[var(--color-mist)] transition-colors hover:bg-[rgba(194,176,146,0.06)] hover:text-[var(--color-pearl)]"
         >
           {messageCopied ? inviteCopy.copyMessageDone : inviteCopy.copyMessage}
         </button>
