@@ -2,9 +2,9 @@
 
 import { startTransition, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { AppShellHeader } from "@/components/cards/AppShellHeader";
 import { CardList } from "@/components/cards/CardList";
-import { DashboardHeader } from "@/components/cards/DashboardHeader";
+import { DashboardCommandCenter } from "@/components/cards/DashboardHeader";
+import { DashboardToolbar } from "@/components/cards/DashboardToolbar";
 import { EmptyCardsState } from "@/components/cards/EmptyCardsState";
 import { DevAuthIdentity } from "@/components/dev/DevAuthIdentity";
 import { LoadingVault } from "@/components/ui/LoadingVault";
@@ -70,22 +70,25 @@ export default function AppPage() {
   }, [authUid, authLoading]);
 
   return (
-    <main className="min-h-dvh px-6 py-10">
+    <main className="min-h-dvh px-6 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto w-full max-w-lg">
-        <AppShellHeader title="הכרטיסים שלי" showNewCard />
+        <DashboardToolbar />
 
         <DevAuthIdentity />
 
         {authLoading || loading ? (
           <LoadingVault inline label={loadingLabels.cards} />
         ) : error ? (
-          <p className="text-center text-sm text-[var(--color-muted-rose)]" role="alert">
+          <p
+            className="text-center text-sm text-[var(--color-muted-rose)]"
+            role="alert"
+          >
             {error}
           </p>
         ) : (
           <>
             {authUid ? (
-              <DashboardHeader cards={cards} viewerUid={authUid} />
+              <DashboardCommandCenter cards={cards} viewerUid={authUid} />
             ) : null}
             {cards.length === 0 ? (
               <EmptyCardsState />

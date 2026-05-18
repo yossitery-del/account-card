@@ -1,18 +1,30 @@
-/** נוסח כותרת דשבורד — «כרטיס» / «כרטיס חשבון» */
+/** נוסח מרכז פיקוד דשבורד — «כרטיס» / «כרטיס חשבון» */
 
-export function activeCardsLabel(count: number): string {
-  if (count === 1) {
-    return "כרטיס חשבון פעיל";
+export function primaryStatusMessage(cardsWithPending: number): string {
+  if (cardsWithPending === 1) {
+    return "כרטיס אחד ממתין לאישור";
   }
-  return `${count} כרטיסי חשבון`;
+  if (cardsWithPending > 1) {
+    return `${cardsWithPending} כרטיסים ממתינים לאישור`;
+  }
+  return "הכול מסודר כרגע";
 }
 
-export function pendingCardsLabel(count: number): string | null {
+export function activeCardsMeta(count: number): string {
   if (count === 0) {
-    return null;
+    return "אין כרטיסי חשבון עדיין";
   }
   if (count === 1) {
-    return "ממתין לאישור בכרטיס אחד";
+    return "כרטיס חשבון פעיל אחד";
   }
-  return `ממתין לאישור ב־${count} כרטיסים`;
+  return `${count} כרטיסי חשבון פעילים`;
 }
+
+export const dashboardCopy = {
+  cardsSectionTitle: "הכרטיסים שלי",
+  searchPlaceholder: "חפש כרטיס חשבון...",
+  filterAll: "הכול",
+  filterPending: "ממתינים",
+  noFilterResults: "לא נמצאו כרטיסים מתאימים",
+  openCard: "פתיחת כרטיס",
+} as const;
