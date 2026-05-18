@@ -2,6 +2,11 @@
 
 import { entriesCopy } from "@/lib/entries/entriesCopy";
 import { formatEntryForViewer } from "@/lib/entries/entryIntent";
+import {
+  formatEntryLedgerDate,
+  formatEntryLedgerDateTimeIso,
+  getEntryDisplayDate,
+} from "@/lib/ui/formatEntryLedgerDate";
 import type { AccountCardEntryWithId } from "@/types/entry";
 
 type EntryListItemProps = {
@@ -48,6 +53,9 @@ export function EntryListItem({
   const attribution = isOwn
     ? entriesCopy.addedByYou
     : entriesCopy.addedByOther(creatorDisplayName);
+
+  const displayDate = getEntryDisplayDate(entry);
+  const dateLine = displayDate ? formatEntryLedgerDate(displayDate) : null;
 
   const statusChip = isApproved
     ? entriesCopy.approvedChip
@@ -96,6 +104,23 @@ export function EntryListItem({
                 <span className="text-[var(--color-champagne)]/85">
                   {entriesCopy.pendingYourApproval}
                 </span>
+              </>
+            ) : null}
+            {dateLine ? (
+              <>
+                <span className="text-[var(--color-champagne)]/30" aria-hidden>
+                  ·
+                </span>
+                <time
+                  dateTime={
+                    displayDate
+                      ? formatEntryLedgerDateTimeIso(displayDate)
+                      : undefined
+                  }
+                  className="tabular-nums text-[var(--color-mist)]/80"
+                >
+                  {dateLine}
+                </time>
               </>
             ) : null}
           </p>
