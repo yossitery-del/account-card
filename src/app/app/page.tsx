@@ -15,6 +15,7 @@ import {
   replaceDashboardCard,
 } from "@/lib/cards/refreshDashboardCard";
 import { listUserCards } from "@/lib/cards/listUserCards";
+import { useDashboardRevalidate } from "@/lib/cards/useDashboardRevalidate";
 import type { AccountCardSummary } from "@/types/card";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -33,6 +34,17 @@ export default function AppPage() {
     }
     return listUserCards(authUid);
   }, [authUid]);
+
+  const handleRevalidatedCards = useCallback((list: AccountCardSummary[]) => {
+    setCards(list);
+    setError(null);
+  }, []);
+
+  useDashboardRevalidate({
+    viewerUid: authUid,
+    initialLoading: authLoading || loading,
+    onCards: handleRevalidatedCards,
+  });
 
   const refreshCard = useCallback(
     async (cardId: string) => {
