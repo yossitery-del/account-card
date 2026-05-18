@@ -4,18 +4,23 @@
  */
 
 :root {
-  --color-vault-black: #0a0b0f;
-  --color-deep-surface: #12141a;
-  --color-pearl: #f4f2ed;
-  --color-mist: #9b98a8;
-  --color-champagne: #c9b896;
-  --color-champagne-hover: #e8dcc4;
-  --color-trust-green: #5cb88a;
-  --color-amber-mist: #d4a574;
+  --color-vault-black: #0e0f0d;
+  --color-deep-surface: #171815;
+  --color-vault-graphite: #1c1d19;
+  --color-vault-elevated: #242520;
+  --color-pearl: #f7f5f0;
+  --color-mist: #ada9a0;
+  --color-champagne: #c2b092;
+  --color-champagne-hover: #e0d4bc;
+  --color-trust-green: #849a88;
+  --color-vault-gold-green: #b0a882;
+  --color-amber-mist: #c4a878;
   --color-muted-rose: #b87a7a;
 
-  --color-glass-surface: rgba(255, 255, 255, 0.06);
-  --color-glass-border: rgba(255, 255, 255, 0.12);
+  --color-glass-surface: rgba(194, 176, 146, 0.06);
+  --color-glass-border: rgba(194, 176, 146, 0.14);
+  --color-vault-border-metallic: rgba(194, 176, 146, 0.2);
+  --color-vault-focus-ring: rgba(194, 176, 146, 0.14);
 
   --font-assistant: var(--font-assistant-family), system-ui, sans-serif;
 }

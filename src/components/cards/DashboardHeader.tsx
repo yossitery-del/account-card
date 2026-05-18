@@ -57,35 +57,31 @@ export function DashboardCommandCenter({
 
   return (
     <section
-      className="mb-8 border-b border-[var(--color-glass-border)]/35 pb-7"
+      className="vault-command-divider mb-8 border-b pb-7"
       aria-label="מרכז פיקוד"
     >
       <div className="flex items-start gap-3">
         <span
           className={`mt-2.5 h-2 w-2 shrink-0 rounded-full ${
             hasAttention
-              ? "bg-[var(--color-champagne)] shadow-[0_0_12px_rgba(201,184,150,0.55)]"
-              : "bg-[var(--color-mist)]/35"
+              ? "bg-[var(--color-vault-gold-green)]"
+              : "bg-[var(--color-mist)]/45"
           }`}
           aria-hidden
         />
         <div className="min-w-0 flex-1">
-          <h1
-            className={`text-xl font-medium leading-snug tracking-tight sm:text-2xl ${
-              hasAttention
-                ? "text-[var(--color-champagne)]"
-                : "text-[var(--color-pearl)]"
-            }`}
-          >
+          <h1 className="text-xl font-semibold leading-snug tracking-tight text-[var(--color-pearl)] sm:text-2xl">
             {statusPrimary}
           </h1>
-          <p className="mt-1.5 text-sm text-[var(--color-mist)]">{greeting}</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-[var(--color-mist)]">
+            {greeting}
+          </p>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--color-mist)]">
+      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs leading-relaxed text-[var(--color-mist)]">
         <span>{cardsMeta}</span>
-        <span className="text-[var(--color-glass-border)]" aria-hidden>
+        <span className="text-[var(--color-champagne)]/30" aria-hidden>
           ·
         </span>
         <span>{dateTimeLine}</span>
