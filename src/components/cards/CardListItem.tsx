@@ -1,22 +1,34 @@
 import Link from "next/link";
-import type { AccountCardSummary } from "@/types/card";
+import {
+  canonicalDeltaFromEffect,
+  formatSignedDelta,
+  toViewerDelta,
+} from "@/lib/balance/viewerDelta";
 import { cardsCopy } from "@/lib/cards/cardsCopy";
 import { dashboardCopy } from "@/lib/cards/dashboardCopy";
+import type { DashboardPendingCardSummary } from "@/lib/cards/dashboardPending";
 import {
   formatOfficialBalanceAmount,
   formatPendingBalanceDisplay,
 } from "@/lib/cards/formatBalance";
+import {
+  formatEntryLedgerDate,
+  getEntryDisplayDate,
+} from "@/lib/ui/formatEntryLedgerDate";
+import type { AccountCardSummary } from "@/types/card";
 
 type CardListItemProps = {
   card: AccountCardSummary;
   viewerUid: string;
   hasPending: boolean;
+  pendingSummary: DashboardPendingCardSummary | null;
 };
 
 export function CardListItem({
   card,
   viewerUid,
   hasPending,
+  pendingSummary,
 }: CardListItemProps) {
   const official = formatOfficialBalanceAmount(
     card.officialBalance,
@@ -28,6 +40,27 @@ export function CardListItem({
     viewerUid,
     card.balancePerspectiveUid
   );
+
+  const awaitingCount = pendingSummary?.pendingAwaitingMyApprovalCount ?? 0;
+  const singleAwaiting = pendingSummary?.pendingAwaitingMyApproval;
+  const singleAwaitingDate = singleAwaiting
+    ? getEntryDisplayDate(singleAwaiting)
+    : null;
+  const singleAwaitingDateLine = singleAwaitingDate
+    ? formatEntryLedgerDate(singleAwaitingDate)
+    : null;
+  const singleAwaitingAmount = singleAwaiting
+    ? formatSignedDelta(
+        toViewerDelta(
+          canonicalDeltaFromEffect(
+            singleAwaiting.effectOnPerspectiveBalance,
+            singleAwaiting.amount
+          ),
+          viewerUid,
+          card.balancePerspectiveUid
+        )
+      )
+    : null;
 
   return (
     <Link
@@ -86,6 +119,40 @@ export function CardListItem({
           </p>
         ) : null}
       </div>
+
+      {awaitingCount >= 2 ? (
+        <p className="mt-3 text-xs font-medium text-[var(--color-vault-gold-green)]">
+          {dashboardCopy.pendingActionsReview}
+        </p>
+      ) : null}
+
+      {awaitingCount === 1 && singleAwaiting ? (
+        <p className="mt-3 text-xs leading-relaxed text-[var(--color-mist)]">
+          <span className="text-[var(--color-pearl)]/90">{singleAwaiting.title}</span>
+          {singleAwaitingAmount ? (
+            <>
+              <span className="text-[var(--color-champagne)]/30" aria-hidden>
+                {" "}
+                ·{" "}
+              </span>
+              <span className="tabular-nums font-medium text-[var(--color-champagne)]">
+                {singleAwaitingAmount}
+              </span>
+            </>
+          ) : null}
+          {singleAwaitingDateLine ? (
+            <>
+              <span className="text-[var(--color-champagne)]/30" aria-hidden>
+                {" "}
+                ·{" "}
+              </span>
+              <span className="tabular-nums text-[var(--color-mist)]/80">
+                {singleAwaitingDateLine}
+              </span>
+            </>
+          ) : null}
+        </p>
+      ) : null}
     </Link>
   );
 }

@@ -7,15 +7,17 @@ import {
   type CardListFilter,
 } from "@/lib/cards/filterDashboardCards";
 import { dashboardCopy } from "@/lib/cards/dashboardCopy";
+import type { DashboardPendingByCard } from "@/lib/cards/dashboardPending";
 import type { AccountCardSummary } from "@/types/card";
 import { CardListItem } from "./CardListItem";
 
 type CardListProps = {
   cards: AccountCardSummary[];
   viewerUid: string;
+  pendingByCard: DashboardPendingByCard;
 };
 
-export function CardList({ cards, viewerUid }: CardListProps) {
+export function CardList({ cards, viewerUid, pendingByCard }: CardListProps) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<CardListFilter>("all");
 
@@ -87,6 +89,7 @@ export function CardList({ cards, viewerUid }: CardListProps) {
                 card={card}
                 viewerUid={viewerUid}
                 hasPending={cardHasPendingApproval(card, viewerUid)}
+                pendingSummary={pendingByCard[card.id] ?? null}
               />
             </li>
           ))}

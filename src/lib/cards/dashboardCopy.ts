@@ -27,4 +27,5 @@ export const dashboardCopy = {
   filterPending: "ממתינים",
   noFilterResults: "לא נמצאו כרטיסים מתאימים",
   openCard: "פתיחת כרטיס",
+  pendingActionsReview: "פעולות ממתינות לבדיקה",
 } as const;
