@@ -1,6 +1,7 @@
 import {FieldValue, Transaction} from "firebase-admin/firestore";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
-import {db, FUNCTIONS_REGION} from "../lib/admin";
+import {db} from "../lib/admin";
+import {WARMED_ENTRY_CALLABLE_OPTIONS} from "../lib/callableOptions";
 import {assertCanAddEntry} from "../lib/assertCanAddEntry";
 import {requireAuthUid} from "../lib/auth";
 import {
@@ -91,7 +92,7 @@ function rejectClientControlledFields(data: Record<string, unknown>): void {
  * intent נגזר מהמשתמש; type/effect מחושבים בשרת לפי balancePerspectiveUid.
  */
 export const createEntry = onCall(
-  {region: FUNCTIONS_REGION},
+  WARMED_ENTRY_CALLABLE_OPTIONS,
   async (request): Promise<CreateEntryOutput> => {
     const uid = requireAuthUid(request);
     const payload = request.data;

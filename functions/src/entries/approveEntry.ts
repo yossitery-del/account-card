@@ -5,7 +5,8 @@ import {
   assertEntryApprovable,
   parseEntryDelta,
 } from "../lib/assertCanApproveEntry";
-import {db, FUNCTIONS_REGION} from "../lib/admin";
+import {db} from "../lib/admin";
+import {WARMED_ENTRY_CALLABLE_OPTIONS} from "../lib/callableOptions";
 import {parseEntryActionPayload} from "../lib/entryActionPayload";
 import {requireAuthUid} from "../lib/auth";
 import {
@@ -29,7 +30,7 @@ export type ApproveEntryOutput = Awaited<
  * מאשר רשומה pending — מעביר השפעה מ-pendingBalanceImpact ל-officialBalance.
  */
 export const approveEntry = onCall(
-  {region: FUNCTIONS_REGION},
+  WARMED_ENTRY_CALLABLE_OPTIONS,
   async (request): Promise<ApproveEntryOutput> => {
     const uid = requireAuthUid(request);
     const data = parseEntryActionPayload(request.data);

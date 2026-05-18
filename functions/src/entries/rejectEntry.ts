@@ -5,7 +5,8 @@ import {
   assertEntryApprovable,
   parseEntryDelta,
 } from "../lib/assertCanApproveEntry";
-import {db, FUNCTIONS_REGION} from "../lib/admin";
+import {db} from "../lib/admin";
+import {WARMED_ENTRY_CALLABLE_OPTIONS} from "../lib/callableOptions";
 import {parseEntryActionPayload} from "../lib/entryActionPayload";
 import {requireAuthUid} from "../lib/auth";
 import {
@@ -30,7 +31,7 @@ export type RejectEntryOutput = Awaited<
  * דוחה רשומה pending — מסיר השפעה מ-pendingBalanceImpact בלבד.
  */
 export const rejectEntry = onCall(
-  {region: FUNCTIONS_REGION},
+  WARMED_ENTRY_CALLABLE_OPTIONS,
   async (request): Promise<RejectEntryOutput> => {
     const uid = requireAuthUid(request);
     const data = parseEntryActionPayload(request.data);
