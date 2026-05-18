@@ -8,6 +8,7 @@ import {
 import {db, FUNCTIONS_REGION} from "../lib/admin";
 import {parseEntryActionPayload} from "../lib/entryActionPayload";
 import {requireAuthUid} from "../lib/auth";
+import {applyDashboardPendingSummaryInTransaction} from "../lib/recomputeDashboardPendingSummary";
 import {readEntryMutationBalances} from "../lib/entryMutationBalances";
 import {parseCardId, parseEntryId} from "../lib/validators";
 
@@ -76,6 +77,8 @@ export const approveEntry = onCall(
         pendingBalanceImpact: FieldValue.increment(-delta),
         updatedAt: now,
       });
+
+      await applyDashboardPendingSummaryInTransaction(transaction, cardRef, now);
 
       transaction.set(auditRef, {
         action: "entry.approved",

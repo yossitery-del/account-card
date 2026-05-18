@@ -57,6 +57,8 @@ export const createAccountCard = onCall(
       pendingBalanceImpact: 0,
       encryptionMode: "none",
       dataSchemaVersion: 1,
+      dashboardPendingSummaryByUid: {},
+      dashboardPendingSummaryUpdatedAt: now,
     });
 
     batch.set(participantRef, {

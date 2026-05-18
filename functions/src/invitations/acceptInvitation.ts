@@ -9,6 +9,7 @@ import {db, FUNCTIONS_REGION} from "../lib/admin";
 import {requireAuthUid} from "../lib/auth";
 import {emailDomain, profileFromToken} from "../lib/profileFromToken";
 import {parseInviteToken} from "../lib/parseInviteToken";
+import {applyDashboardPendingSummaryInTransaction} from "../lib/recomputeDashboardPendingSummary";
 import {hashInviteToken} from "../lib/tokens";
 
 export type AcceptInvitationInput = {
@@ -208,6 +209,8 @@ export const acceptInvitation = onCall(
         createdAt: now,
         metadata: {role: "participant"},
       });
+
+      await applyDashboardPendingSummaryInTransaction(transaction, cardRef, now);
 
       return {cardId};
     });

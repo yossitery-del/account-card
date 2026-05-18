@@ -16,6 +16,7 @@ import {
   type EntryIntent,
   type EntryType,
 } from "../lib/entryIntent";
+import {applyDashboardPendingSummaryInTransaction} from "../lib/recomputeDashboardPendingSummary";
 import {readEntryMutationBalances} from "../lib/entryMutationBalances";
 import {parseEditEntryPayload} from "../lib/parseEditEntryPayload";
 
@@ -154,6 +155,8 @@ export const editEntry = onCall(
         pendingBalanceImpact: FieldValue.increment(deltaAdjustment),
         updatedAt: now,
       });
+
+      await applyDashboardPendingSummaryInTransaction(transaction, cardRef, now);
 
       transaction.set(auditRef, {
         action: "entry.edited",

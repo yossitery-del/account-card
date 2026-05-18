@@ -9,7 +9,7 @@ describe("createEntry smoke", () => {
   });
 
   it("יוצר רשומה pending ומעדכן pendingBalanceImpact באמולטור", async () => {
-    const {cardId, ownerUid} = await seedCard();
+    const {cardId, ownerUid, participantUid} = await seedCard();
 
     const result = await callCallable<CreateEntryInput, CreateEntryOutput>(
       createEntry,
@@ -31,5 +31,20 @@ describe("createEntry smoke", () => {
     expect(result.updatedAt).toEqual(expect.any(String));
     expect(card.officialBalance).toBe(result.officialBalance);
     expect(card.pendingBalanceImpact).toBe(result.pendingBalanceImpact);
+
+    const summary = card.dashboardPendingSummaryByUid as Record<
+      string,
+      {
+        pendingAwaitingMyApprovalCount: number;
+        pendingAwaitingMyApproval?: {entryId: string} | null;
+      }
+    >;
+
+    expect(summary[ownerUid].pendingAwaitingMyApprovalCount).toBe(0);
+    expect(summary[participantUid].pendingAwaitingMyApprovalCount).toBe(1);
+    expect(summary[participantUid].pendingAwaitingMyApproval?.entryId).toBe(
+      result.entryId
+    );
+    expect(card.dashboardPendingSummaryUpdatedAt).toBeDefined();
   });
 });
