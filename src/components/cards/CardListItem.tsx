@@ -27,7 +27,10 @@ import type { AccountCardSummary } from "@/types/card";
 type CardListItemProps = {
   card: AccountCardSummary;
   viewerUid: string;
-  onCardRefresh: (cardId: string) => Promise<void>;
+  onCardRefresh: (
+    cardId: string,
+    mutation?: Awaited<ReturnType<typeof approveEntry>>
+  ) => Promise<void>;
 };
 
 type QuickActionKind = "approve" | "reject";
@@ -96,12 +99,11 @@ export function CardListItem({
       setActionError(null);
 
       try {
-        if (kind === "approve") {
-          await approveEntry(user, card.id, quickActionTarget.entryId);
-        } else {
-          await rejectEntry(user, card.id, quickActionTarget.entryId);
-        }
-        await onCardRefresh(card.id);
+        const mutation =
+          kind === "approve"
+            ? await approveEntry(user, card.id, quickActionTarget.entryId)
+            : await rejectEntry(user, card.id, quickActionTarget.entryId);
+        await onCardRefresh(card.id, mutation);
       } catch (err) {
         setActionError(
           err instanceof Error

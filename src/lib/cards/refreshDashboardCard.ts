@@ -4,6 +4,9 @@ import {
   getAccountCardSummaryForViewer,
   sortAccountCardSummaries,
 } from "@/lib/cards/accountCardSummary";
+import { hasCardBalancePatch } from "@/lib/cards/patchCardBalances";
+import { parseViewerPendingAwaitingMyApproval } from "@/lib/cards/parseViewerPendingSummary";
+import type { DashboardQuickActionCallableResult } from "@/lib/firebase/functions";
 import type { AccountCardSummary } from "@/types/card";
 
 /**
@@ -20,6 +23,33 @@ export function replaceDashboardCard(
   return sortAccountCardSummaries(next);
 }
 
+/**
+ * מעדכן כרטיס מהתשובה העשירה של approve/reject — ללא getDoc.
+ */
+export function patchDashboardCardFromQuickAction(
+  existing: AccountCardSummary,
+  mutation: DashboardQuickActionCallableResult
+): AccountCardSummary | null {
+  if (mutation.cardId !== existing.id || !hasCardBalancePatch(mutation)) {
+    return null;
+  }
+
+  const pendingAwaitingMyApproval = parseViewerPendingAwaitingMyApproval(
+    mutation.pendingAwaitingMyApproval
+  );
+  if (!pendingAwaitingMyApproval) {
+    return null;
+  }
+
+  return {
+    ...existing,
+    officialBalance: mutation.officialBalance,
+    pendingBalanceImpact: mutation.pendingBalanceImpact,
+    updatedAt: mutation.updatedAt,
+    pendingAwaitingMyApproval,
+  };
+}
+
 export type RefreshDashboardCardOptions = {
   cardId: string;
   viewerUid: string;
@@ -27,7 +57,7 @@ export type RefreshDashboardCardOptions = {
 };
 
 /**
- * רענון כרטיס בודד אחרי quick approve/reject; נפילה ל-listUserCards במקרה כשל.
+ * רענון כרטיס בודד מ-getDoc; נפילה ל-listUserCards במקרה כשל.
  */
 export async function refreshDashboardCardInPlace(
   options: RefreshDashboardCardOptions

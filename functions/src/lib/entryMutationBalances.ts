@@ -1,6 +1,10 @@
 import {Timestamp} from "firebase-admin/firestore";
 import {HttpsError} from "firebase-functions/v2/https";
 import {db} from "./admin";
+import {
+  viewerPendingSummaryForUid,
+  type ViewerPendingAwaitingMyApprovalResponse,
+} from "./viewerPendingSummaryResponse";
 
 export type EntryMutationBalances = {
   cardId: string;
@@ -8,6 +12,10 @@ export type EntryMutationBalances = {
   officialBalance: number;
   pendingBalanceImpact: number;
   updatedAt: string;
+};
+
+export type EntryMutationResult = EntryMutationBalances & {
+  pendingAwaitingMyApproval?: ViewerPendingAwaitingMyApprovalResponse;
 };
 
 function serializeUpdatedAt(value: unknown): string {
@@ -25,11 +33,16 @@ function serializeUpdatedAt(value: unknown): string {
   return new Date().toISOString();
 }
 
-/** יתרות מהכרטיס אחרי commit — מקור אמת בשרת. */
-export async function readEntryMutationBalances(
+type ReadEntryMutationOptions = {
+  viewerUid?: string;
+};
+
+/** יתרות (+ סיכום ממתין לצופה) מהכרטיס אחרי commit. */
+export async function readEntryMutationResult(
   cardId: string,
-  entryId: string
-): Promise<EntryMutationBalances> {
+  entryId: string,
+  options?: ReadEntryMutationOptions
+): Promise<EntryMutationResult> {
   const cardSnap = await db.collection("accountCards").doc(cardId).get();
   if (!cardSnap.exists) {
     throw new HttpsError("not-found", "הכרטיס לא נמצא");
@@ -43,11 +56,28 @@ export async function readEntryMutationBalances(
       data.pendingBalanceImpact :
       0;
 
-  return {
+  const result: EntryMutationResult = {
     cardId,
     entryId,
     officialBalance,
     pendingBalanceImpact,
     updatedAt: serializeUpdatedAt(data?.updatedAt),
   };
+
+  if (options?.viewerUid) {
+    result.pendingAwaitingMyApproval = viewerPendingSummaryForUid(
+      data?.dashboardPendingSummaryByUid,
+      options.viewerUid
+    );
+  }
+
+  return result;
+}
+
+/** יתרות מהכרטיס אחרי commit — מקור אמת בשרת. */
+export async function readEntryMutationBalances(
+  cardId: string,
+  entryId: string
+): Promise<EntryMutationBalances> {
+  return readEntryMutationResult(cardId, entryId);
 }

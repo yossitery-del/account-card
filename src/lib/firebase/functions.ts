@@ -130,6 +130,20 @@ export type CreateEntryInput = {
   title: string;
 };
 
+export type ViewerPendingAwaitingMyApprovalCallable = {
+  pendingAwaitingMyApprovalCount: number;
+  pendingAwaitingMyApproval?: {
+    entryId: string;
+    title: string;
+    amount: number;
+    effectOnPerspectiveBalance: "increase" | "decrease";
+    entryDate: string;
+    createdAt: string;
+    createdByUid: string;
+    status: "pending";
+  } | null;
+};
+
 export type CreateEntryCallableResult = {
   cardId: string;
   entryId: string;
@@ -139,7 +153,14 @@ export type CreateEntryCallableResult = {
 };
 
 /** תשובת mutation עם יתרות מהשרת — P1A/P1B */
-export type EntryMutationCallableResult = CreateEntryCallableResult;
+export type EntryMutationCallableResult = CreateEntryCallableResult & {
+  pendingAwaitingMyApproval?: ViewerPendingAwaitingMyApprovalCallable;
+};
+
+/** תשובת approve/reject לדשבורד — כולל סיכום ממתין לצופה בלבד */
+export type DashboardQuickActionCallableResult = EntryMutationCallableResult & {
+  pendingAwaitingMyApproval: ViewerPendingAwaitingMyApprovalCallable;
+};
 
 /** קריאה ל-Callable `createEntry` — Stage 2C-1 (auth חובה). */
 export async function callCreateEntryFunction(
@@ -165,10 +186,10 @@ export type RejectEntryInput = EntryActionInput & {
 /** קריאה ל-Callable `approveEntry` — Stage 2C-2 (auth חובה). */
 export async function callApproveEntryFunction(
   input: EntryActionInput
-): Promise<EntryMutationCallableResult> {
+): Promise<DashboardQuickActionCallableResult> {
   const callable = httpsCallable<
     EntryActionInput,
-    EntryMutationCallableResult
+    DashboardQuickActionCallableResult
   >(getFirebaseFunctions(), "approveEntry");
   const result = await callable(input);
   return result.data;
@@ -177,11 +198,11 @@ export async function callApproveEntryFunction(
 /** קריאה ל-Callable `rejectEntry` — Stage 2C-2 (auth חובה). */
 export async function callRejectEntryFunction(
   input: RejectEntryInput
-): Promise<EntryMutationCallableResult> {
-  const callable = httpsCallable<RejectEntryInput, EntryMutationCallableResult>(
-    getFirebaseFunctions(),
-    "rejectEntry"
-  );
+): Promise<DashboardQuickActionCallableResult> {
+  const callable = httpsCallable<
+    RejectEntryInput,
+    DashboardQuickActionCallableResult
+  >(getFirebaseFunctions(), "rejectEntry");
   const result = await callable(input);
   return result.data;
 }

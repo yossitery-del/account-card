@@ -14,7 +14,7 @@ import {
   excludePendingEntryById,
   loadDashboardPendingSummaryInputs,
 } from "../lib/recomputeDashboardPendingSummary";
-import {readEntryMutationBalances} from "../lib/entryMutationBalances";
+import {readEntryMutationResult} from "../lib/entryMutationBalances";
 import {parseCardId, parseEntryId} from "../lib/validators";
 
 export type ApproveEntryInput = {
@@ -23,7 +23,7 @@ export type ApproveEntryInput = {
 };
 
 export type ApproveEntryOutput = Awaited<
-  ReturnType<typeof readEntryMutationBalances>
+  ReturnType<typeof readEntryMutationResult>
 >;
 
 /**
@@ -110,6 +110,6 @@ export const approveEntry = onCall(
       });
     });
 
-    return readEntryMutationBalances(cardId, entryId);
+    return readEntryMutationResult(cardId, entryId, {viewerUid: uid});
   }
 );

@@ -6,13 +6,17 @@ import {
   type CardListFilter,
 } from "@/lib/cards/filterDashboardCards";
 import { dashboardCopy } from "@/lib/cards/dashboardCopy";
+import type { DashboardQuickActionCallableResult } from "@/lib/firebase/functions";
 import type { AccountCardSummary } from "@/types/card";
 import { CardListItem } from "./CardListItem";
 
 type CardListProps = {
   cards: AccountCardSummary[];
   viewerUid: string;
-  onCardRefresh: (cardId: string) => Promise<void>;
+  onCardRefresh: (
+    cardId: string,
+    mutation?: DashboardQuickActionCallableResult
+  ) => Promise<void>;
 };
 
 export function CardList({ cards, viewerUid, onCardRefresh }: CardListProps) {

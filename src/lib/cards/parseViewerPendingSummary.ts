@@ -53,19 +53,13 @@ function parseEntryPreview(raw: unknown): DashboardPendingEntryPreview | null {
 }
 
 /**
- * ממפה dashboardPendingSummaryByUid[viewerUid] לסיכום צופה — ללא חשיפת המפה המלאה ל-UI.
+ * מפרסר אובייקט סיכום צופה בודד (מ-Callable או ממסמך כרטיס).
  */
-export function parseViewerPendingSummary(
-  dashboardPendingSummaryByUid: unknown,
-  viewerUid: string
-): ViewerPendingAwaitingMyApproval {
-  if (!dashboardPendingSummaryByUid || typeof dashboardPendingSummaryByUid !== "object") {
-    return EMPTY_VIEWER_PENDING;
-  }
-
-  const raw = (dashboardPendingSummaryByUid as Record<string, unknown>)[viewerUid];
+export function parseViewerPendingAwaitingMyApproval(
+  raw: unknown
+): ViewerPendingAwaitingMyApproval | null {
   if (!raw || typeof raw !== "object") {
-    return EMPTY_VIEWER_PENDING;
+    return null;
   }
 
   const row = raw as Record<string, unknown>;
@@ -74,7 +68,11 @@ export function parseViewerPendingSummary(
     Number.isFinite(row.pendingAwaitingMyApprovalCount) &&
     row.pendingAwaitingMyApprovalCount >= 0
       ? Math.floor(row.pendingAwaitingMyApprovalCount)
-      : 0;
+      : null;
+
+  if (count === null) {
+    return null;
+  }
 
   if (count === 0) {
     return EMPTY_VIEWER_PENDING;
@@ -91,4 +89,19 @@ export function parseViewerPendingSummary(
   return {
     pendingAwaitingMyApprovalCount: count,
   };
+}
+
+/**
+ * ממפה dashboardPendingSummaryByUid[viewerUid] לסיכום צופה — ללא חשיפת המפה המלאה ל-UI.
+ */
+export function parseViewerPendingSummary(
+  dashboardPendingSummaryByUid: unknown,
+  viewerUid: string
+): ViewerPendingAwaitingMyApproval {
+  if (!dashboardPendingSummaryByUid || typeof dashboardPendingSummaryByUid !== "object") {
+    return EMPTY_VIEWER_PENDING;
+  }
+
+  const raw = (dashboardPendingSummaryByUid as Record<string, unknown>)[viewerUid];
+  return parseViewerPendingAwaitingMyApproval(raw) ?? EMPTY_VIEWER_PENDING;
 }

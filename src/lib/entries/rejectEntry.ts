@@ -5,7 +5,7 @@ import type { User } from "firebase/auth";
 import { withPerf } from "@/lib/dev/perfLog";
 import {
   callRejectEntryFunction,
-  type EntryMutationCallableResult,
+  type DashboardQuickActionCallableResult,
 } from "@/lib/firebase/functions";
 
 function mapRejectEntryError(err: unknown): string {
@@ -33,7 +33,7 @@ export async function rejectEntry(
   user: User,
   cardId: string,
   entryId: string
-): Promise<EntryMutationCallableResult> {
+): Promise<DashboardQuickActionCallableResult> {
   if (!user.uid) {
     throw new Error("נדרשת התחברות");
   }

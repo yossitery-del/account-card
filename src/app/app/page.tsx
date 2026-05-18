@@ -10,7 +10,9 @@ import { DevAuthIdentity } from "@/components/dev/DevAuthIdentity";
 import { LoadingVault } from "@/components/ui/LoadingVault";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { FunctionsHealthDebug } from "@/components/dev/FunctionsHealthDebug";
+import type { DashboardQuickActionCallableResult } from "@/lib/firebase/functions";
 import {
+  patchDashboardCardFromQuickAction,
   refreshDashboardCardInPlace,
   replaceDashboardCard,
 } from "@/lib/cards/refreshDashboardCard";
@@ -47,9 +49,31 @@ export default function AppPage() {
   });
 
   const refreshCard = useCallback(
-    async (cardId: string) => {
+    async (
+      cardId: string,
+      mutation?: DashboardQuickActionCallableResult
+    ) => {
       if (!authUid) {
         return;
+      }
+
+      if (mutation?.cardId === cardId) {
+        let didPatch = false;
+        setCards((prev) => {
+          const existing = prev.find((card) => card.id === cardId);
+          if (!existing) {
+            return prev;
+          }
+          const patched = patchDashboardCardFromQuickAction(existing, mutation);
+          if (!patched) {
+            return prev;
+          }
+          didPatch = true;
+          return replaceDashboardCard(prev, patched);
+        });
+        if (didPatch) {
+          return;
+        }
       }
 
       const result = await refreshDashboardCardInPlace({
