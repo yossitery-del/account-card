@@ -1,6 +1,12 @@
 "use client";
 
-import { collectionGroup, getDocs, query, where } from "firebase/firestore";
+import {
+  collectionGroup,
+  getDocs,
+  query,
+  where,
+  type QueryDocumentSnapshot,
+} from "firebase/firestore";
 import { withPerf, withPerfStep } from "@/lib/dev/perfLog";
 import { getFirestoreDb } from "@/lib/firebase/client";
 import type { AccountCardEntry, EntryEffect } from "@/types/entry";
@@ -24,8 +30,29 @@ export type DashboardPendingCardSummary = {
 
 export type DashboardPendingByCard = Record<string, DashboardPendingCardSummary>;
 
-function cardIdFromEntryRef(path: string): string | null {
-  const segments = path.split("/");
+const DEV_PENDING_LOG = "[dashboard-pending]";
+
+function logDashboardPendingDiscovery(
+  message: string,
+  data?: Record<string, unknown>
+): void {
+  if (process.env.NODE_ENV !== "development") {
+    return;
+  }
+  if (data) {
+    console.info(DEV_PENDING_LOG, message, data);
+  } else {
+    console.info(DEV_PENDING_LOG, message);
+  }
+}
+
+/** accountCards/{cardId}/entries/{entryId} — parent.parent.id עדיף על פענוח path */
+function cardIdFromEntryDoc(docSnap: QueryDocumentSnapshot): string | null {
+  const cardRef = docSnap.ref.parent?.parent;
+  if (cardRef?.id) {
+    return cardRef.id;
+  }
+  const segments = docSnap.ref.path.split("/");
   const cardsIndex = segments.indexOf("accountCards");
   if (cardsIndex === -1 || cardsIndex + 1 >= segments.length) {
     return null;
@@ -84,6 +111,12 @@ export async function listDashboardPendingEntries(
   return withPerf("listDashboardPendingEntries", async () => {
     const db = getFirestoreDb();
 
+    logDashboardPendingDiscovery("query started", {
+      viewerUid,
+      collectionGroup: "entries",
+      filter: "status == pending",
+    });
+
     const pendingQuery = query(
       collectionGroup(db, "entries"),
       where("status", "==", "pending")
@@ -96,20 +129,29 @@ export async function listDashboardPendingEntries(
     );
 
     const byCard = new Map<string, DashboardPendingEntryPreview[]>();
+    let skippedNoCardId = 0;
+    let skippedOwnEntry = 0;
+    let skippedInvalidPreview = 0;
 
     for (const docSnap of snap.docs) {
-      const cardId = cardIdFromEntryRef(docSnap.ref.path);
+      const cardId = cardIdFromEntryDoc(docSnap);
       if (!cardId) {
+        skippedNoCardId += 1;
+        logDashboardPendingDiscovery("skipped: could not resolve cardId", {
+          refPath: docSnap.ref.path,
+        });
         continue;
       }
 
       const data = docSnap.data() as AccountCardEntry;
       if (data.createdByUid === viewerUid) {
+        skippedOwnEntry += 1;
         continue;
       }
 
       const preview = toPreview(cardId, docSnap.id, data);
       if (!preview) {
+        skippedInvalidPreview += 1;
         continue;
       }
 
@@ -132,11 +174,33 @@ export async function listDashboardPendingEntries(
       };
     }
 
-    if (process.env.NODE_ENV === "development") {
-      console.info("[perf] listDashboardPendingEntries.summary", {
-        pendingDocs: snap.size,
-        cardsWithAwaitingApproval: Object.keys(result).length,
-      });
+    const cardsGrouped = Object.keys(result).length;
+    const entriesAwaitingApproval = Object.values(result).reduce(
+      (sum, card) => sum + card.pendingAwaitingMyApprovalCount,
+      0
+    );
+
+    logDashboardPendingDiscovery("query finished", {
+      pendingDocsReturned: snap.size,
+      skippedOwnEntry,
+      skippedNoCardId,
+      skippedInvalidPreview,
+      cardsGrouped,
+      entriesAwaitingApproval,
+    });
+
+    if (snap.size === 0) {
+      logDashboardPendingDiscovery(
+        "no pending entry docs returned — previews will be empty"
+      );
+    } else if (entriesAwaitingApproval === 0 && skippedOwnEntry === snap.size) {
+      logDashboardPendingDiscovery(
+        "all pending docs are own entries — none await current viewer approval"
+      );
+    } else if (entriesAwaitingApproval === 0) {
+      logDashboardPendingDiscovery(
+        "pending docs returned but none grouped for approval — check skips above"
+      );
     }
 
     return result;
@@ -162,13 +226,17 @@ export function warnDashboardPendingDiscoveryFailure(err: unknown): void {
   if (process.env.NODE_ENV !== "development") {
     return;
   }
-  console.warn(
-    "[dashboard] pending discovery failed (fail-soft, cards still load):",
-    {
-      code: firebaseErrorCode(err),
-      message: err instanceof Error ? err.message : String(err),
-    }
-  );
+  const code = firebaseErrorCode(err);
+  logDashboardPendingDiscovery("query failed (fail-soft)", {
+    code,
+    message: err instanceof Error ? err.message : String(err),
+    hint:
+      code === "permission-denied"
+        ? "check firestore.rules entries read + active participant"
+        : code === "failed-precondition"
+          ? "check Firestore index / single-field controls for collection group entries.status"
+          : undefined,
+  });
 }
 
 /**
