@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CardList } from "@/components/cards/CardList";
 import { DashboardCommandCenter } from "@/components/cards/DashboardHeader";
@@ -22,6 +22,14 @@ export default function AppPage() {
   const [error, setError] = useState<string | null>(null);
 
   const authUid = user?.uid ?? null;
+
+  const refreshCards = useCallback(async () => {
+    if (!authUid) {
+      return;
+    }
+    const list = await listUserCards(authUid);
+    setCards(list);
+  }, [authUid]);
 
   useEffect(() => {
     if (authLoading) {
@@ -92,7 +100,11 @@ export default function AppPage() {
             {cards.length === 0 ? (
               <EmptyCardsState />
             ) : (
-              <CardList cards={cards} viewerUid={authUid!} />
+              <CardList
+                cards={cards}
+                viewerUid={authUid!}
+                onCardsRefresh={refreshCards}
+              />
             )}
           </>
         )}

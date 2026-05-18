@@ -12,9 +12,10 @@ import { CardListItem } from "./CardListItem";
 type CardListProps = {
   cards: AccountCardSummary[];
   viewerUid: string;
+  onCardsRefresh: () => Promise<void>;
 };
 
-export function CardList({ cards, viewerUid }: CardListProps) {
+export function CardList({ cards, viewerUid, onCardsRefresh }: CardListProps) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<CardListFilter>("all");
 
@@ -82,7 +83,11 @@ export function CardList({ cards, viewerUid }: CardListProps) {
         <ul className="flex flex-col gap-3">
           {filtered.map((card) => (
             <li key={card.id}>
-              <CardListItem card={card} viewerUid={viewerUid} />
+              <CardListItem
+                card={card}
+                viewerUid={viewerUid}
+                onCardsRefresh={onCardsRefresh}
+              />
             </li>
           ))}
         </ul>

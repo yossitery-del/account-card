@@ -28,4 +28,5 @@ export const dashboardCopy = {
   noFilterResults: "לא נמצאו כרטיסים מתאימים",
   openCard: "פתיחת כרטיס",
   pendingActionsReview: "פעולות ממתינות לבדיקה",
+  quickActionsLabel: "אישור או דחייה מהירים",
 } as const;
