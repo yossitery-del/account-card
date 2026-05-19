@@ -11,10 +11,7 @@ import {
 import { cardsCopy } from "@/lib/cards/cardsCopy";
 import { dashboardCopy } from "@/lib/cards/dashboardCopy";
 import { getDashboardQuickActionTarget } from "@/lib/cards/dashboardQuickActions";
-import {
-  formatOfficialBalanceAmount,
-  formatPendingBalanceDisplay,
-} from "@/lib/cards/formatBalance";
+import { formatOfficialBalanceAmount } from "@/lib/cards/formatBalance";
 import { approveEntry } from "@/lib/entries/approveEntry";
 import { entriesCopy } from "@/lib/entries/entriesCopy";
 import { rejectEntry } from "@/lib/entries/rejectEntry";
@@ -49,21 +46,10 @@ export function CardListItem({
     viewerUid,
     card.balancePerspectiveUid
   );
-  const pending = formatPendingBalanceDisplay(
-    card.pendingBalanceImpact,
-    viewerUid,
-    card.balancePerspectiveUid
-  );
 
   const awaiting = card.pendingAwaitingMyApproval;
   const awaitingCount = awaiting.pendingAwaitingMyApprovalCount;
   const hasAwaitingApproval = awaitingCount > 0;
-  const hasFinancialPending =
-    toViewerDelta(
-      card.pendingBalanceImpact,
-      viewerUid,
-      card.balancePerspectiveUid
-    ) !== 0;
 
   const singleAwaiting = awaiting.pendingAwaitingMyApproval;
   const quickActionTarget = getDashboardQuickActionTarget(awaiting);
@@ -88,6 +74,7 @@ export function CardListItem({
         )
       )
     : null;
+  const singleAwaitingTitle = singleAwaiting?.title.trim() || null;
 
   const runQuickAction = useCallback(
     async (kind: QuickActionKind) => {
@@ -122,13 +109,11 @@ export function CardListItem({
   return (
     <article
       className={`vault-account-file group relative overflow-hidden rounded-xl transition-[border-color,box-shadow,transform] ${
-        hasAwaitingApproval ? "vault-account-file--attention" : ""
-      } ${isBusy ? "opacity-90" : ""}`}
+        isBusy ? "opacity-90" : ""
+      }`}
     >
       <span
-        className={`vault-file-spine pointer-events-none absolute start-0 top-0 bottom-0 w-[3px] ${
-          hasAwaitingApproval ? "vault-file-spine--attention" : ""
-        }`}
+        className="vault-file-spine pointer-events-none absolute start-0 top-0 bottom-0 w-[3px]"
         aria-hidden
       />
 
@@ -143,7 +128,7 @@ export function CardListItem({
               כרטיס חשבון
             </p>
             <h3
-              className={`truncate text-lg font-semibold leading-snug transition-colors group-hover:text-[var(--color-champagne-hover)] ${
+              className={`overflow-hidden text-lg font-semibold leading-snug transition-colors [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] group-hover:text-[var(--color-champagne-hover)] ${
                 hasAwaitingApproval
                   ? "text-[var(--color-pearl)]"
                   : "text-[var(--color-pearl)]/93"
@@ -160,58 +145,51 @@ export function CardListItem({
           </span>
         </div>
 
-        <div
-          className={`mt-4 flex flex-col gap-2 border-t pt-3.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-4 sm:gap-y-1 ${
-            hasAwaitingApproval
-              ? "border-[var(--color-champagne)]/22"
-              : "border-[var(--color-glass-border)]/28"
-          }`}
-        >
-          <p className="text-xs leading-relaxed text-[var(--color-mist)]">
-            {cardsCopy.balanceInCard}{" "}
-            <span className="text-base font-medium tabular-nums text-[var(--color-champagne)]">
-              {official}
-            </span>
+        <div className="mt-4 border-t border-[var(--color-glass-border)]/28 pt-3.5">
+          <p className="text-[11px] font-medium tracking-wide text-[var(--color-mist)]">
+            {cardsCopy.balanceInCard}
           </p>
-          {hasFinancialPending ? (
-            <p className="text-xs font-medium tabular-nums text-[var(--color-vault-gold-green)]">
-              {cardsCopy.pendingApproval}: {pending.amount}
-            </p>
-          ) : null}
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--color-champagne)]">
+            {official}
+          </p>
         </div>
 
-        {awaitingCount >= 2 ? (
-          <p className="mt-3 text-xs font-medium text-[var(--color-vault-gold-green)]">
-            {dashboardCopy.pendingActionsReview}
-          </p>
-        ) : null}
-
-        {awaitingCount === 1 && singleAwaiting ? (
-          <p className="mt-3 text-xs leading-relaxed text-[var(--color-mist)]">
-            <span className="text-[var(--color-pearl)]/90">{singleAwaiting.title}</span>
-            {singleAwaitingAmount ? (
+        {hasAwaitingApproval ? (
+          <div className="mt-4 rounded-xl border border-[var(--color-champagne)]/16 bg-[rgba(201,184,150,0.055)] px-4 py-3">
+            {awaitingCount === 1 && singleAwaiting ? (
               <>
-                <span className="text-[var(--color-champagne)]/30" aria-hidden>
-                  {" "}
-                  ·{" "}
-                </span>
-                <span className="tabular-nums font-medium text-[var(--color-champagne)]">
-                  {singleAwaitingAmount}
-                </span>
+                <p className="text-sm font-medium text-[var(--color-pearl)]">
+                  {cardsCopy.pendingYourApproval}
+                </p>
+                <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs leading-relaxed text-[var(--color-mist)]">
+                  {singleAwaitingAmount ? (
+                    <span className="tabular-nums font-medium text-[var(--color-champagne)]">
+                      {singleAwaitingAmount}
+                    </span>
+                  ) : null}
+                  {singleAwaitingDateLine ? (
+                    <span className="tabular-nums text-[var(--color-mist)]/80">
+                      {singleAwaitingDateLine}
+                    </span>
+                  ) : null}
+                </p>
+                {singleAwaitingTitle ? (
+                  <p className="mt-2 overflow-hidden text-xs leading-relaxed text-[var(--color-mist)] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:1]">
+                    {singleAwaitingTitle}
+                  </p>
+                ) : null}
               </>
-            ) : null}
-            {singleAwaitingDateLine ? (
+            ) : (
               <>
-                <span className="text-[var(--color-champagne)]/30" aria-hidden>
-                  {" "}
-                  ·{" "}
-                </span>
-                <span className="tabular-nums text-[var(--color-mist)]/80">
-                  {singleAwaitingDateLine}
-                </span>
+                <p className="text-sm font-medium text-[var(--color-pearl)]">
+                  {cardsCopy.pendingAwaitingCount(awaitingCount)}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--color-mist)]">
+                  {cardsCopy.openToReviewPending}
+                </p>
               </>
-            ) : null}
-          </p>
+            )}
+          </div>
         ) : null}
       </Link>
 
@@ -230,12 +208,12 @@ export function CardListItem({
               {actionError}
             </p>
           ) : null}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               disabled={isBusy}
               onClick={() => void runQuickAction("approve")}
-              className="inline-flex min-h-10 min-w-[4.25rem] items-center justify-center rounded-lg border border-[var(--color-champagne)]/35 bg-[var(--color-champagne)]/12 px-3.5 py-2 text-sm font-medium text-[var(--color-champagne)] transition hover:bg-[var(--color-champagne)]/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[var(--color-champagne)]/30 bg-[rgba(201,184,150,0.08)] px-3.5 py-2 text-sm font-medium text-[var(--color-champagne)] transition hover:bg-[rgba(201,184,150,0.13)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busyKind === "approve" ? entriesCopy.approving : entriesCopy.approve}
             </button>
@@ -243,7 +221,7 @@ export function CardListItem({
               type="button"
               disabled={isBusy}
               onClick={() => void runQuickAction("reject")}
-              className="inline-flex min-h-10 min-w-[4.25rem] items-center justify-center rounded-lg border border-[var(--color-vault-border-metallic)] bg-transparent px-3.5 py-2 text-sm font-medium text-[var(--color-mist)] transition hover:border-[var(--color-mist)]/40 hover:text-[var(--color-pearl)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[var(--color-vault-border-metallic)] bg-transparent px-3.5 py-2 text-sm font-medium text-[var(--color-mist)] transition hover:border-[var(--color-mist)]/40 hover:bg-[rgba(194,176,146,0.045)] hover:text-[var(--color-pearl)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busyKind === "reject" ? entriesCopy.rejecting : entriesCopy.reject}
             </button>

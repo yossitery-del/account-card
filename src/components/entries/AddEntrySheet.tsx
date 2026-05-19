@@ -238,13 +238,13 @@ function TypeChoiceButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`min-h-11 rounded-2xl border px-4 py-3 text-start transition ${
+      className={`min-h-11 rounded-2xl border px-3 py-3 text-center transition sm:px-4 sm:text-start ${
         selected
           ? "border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] shadow-[0_0_0_1px_rgba(201,184,150,0.3)]"
           : "vault-choice-inactive hover:border-[var(--color-mist)]"
       } disabled:opacity-60`}
     >
-      <span className="block text-lg font-medium text-[var(--color-pearl)]">
+      <span className="block overflow-hidden break-words text-base font-medium leading-snug text-[var(--color-pearl)] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] sm:text-lg">
         {label}
       </span>
       <span className="mt-1.5 block text-sm leading-relaxed text-[var(--color-mist)]">
