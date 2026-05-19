@@ -21,6 +21,7 @@ import {
   loadDashboardPendingSummaryInputs,
   upsertPendingEntryRow,
 } from "../lib/recomputeDashboardPendingSummary";
+import {createEntryResolvePerf} from "../lib/entryResolveCallablePerf";
 import {readEntryMutationBalances} from "../lib/entryMutationBalances";
 import {parseEditEntryPayload} from "../lib/parseEditEntryPayload";
 
@@ -63,145 +64,203 @@ function resolveStoredIntent(
 export const editEntry = onCall(
   {region: FUNCTIONS_REGION},
   async (request): Promise<EditEntryOutput> => {
-    const uid = requireAuthUid(request);
-    const {cardId, entryId, intent, amount, title} = parseEditEntryPayload(
-      request.data
-    );
+    let perfCardId = "";
+    let perfEntryId = "";
+    let perf = createEntryResolvePerf("editEntry", "", "");
 
-    await assertCanEditEntry(cardId, entryId, uid);
-
-    const cardRef = db.collection("accountCards").doc(cardId);
-    const entryRef = cardRef.collection("entries").doc(entryId);
-    const auditRef = cardRef.collection("auditEvents").doc();
-    const now = FieldValue.serverTimestamp();
-
-    await db.runTransaction(async (transaction: Transaction) => {
-      const [cardSnap, entrySnap, summaryInputs] = await Promise.all([
-        transaction.get(cardRef),
-        transaction.get(entryRef),
-        loadDashboardPendingSummaryInputs(transaction, cardRef),
-      ]);
-
-      if (!cardSnap.exists) {
-        throw new HttpsError("not-found", "הכרטיס לא נמצא");
-      }
-
-      if (!entrySnap.exists) {
-        throw new HttpsError("not-found", "הרשומה לא נמצאה");
-      }
-
-      const card = cardSnap.data();
-      if (card?.status !== "active") {
-        throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
-      }
-
-      const balancePerspectiveUid =
-        typeof card?.balancePerspectiveUid === "string" ?
-          card.balancePerspectiveUid :
-          null;
-      if (!balancePerspectiveUid) {
-        throw new HttpsError("failed-precondition", "כרטיס לא תקין");
-      }
-
-      const entry = entrySnap.data() ?? {};
-      assertEntryEditable(entry, uid);
-
-      const createdByUid = entry.createdByUid as string;
-      const amountBefore = entry.amount as number;
-      const effectBefore = entry.effectOnPerspectiveBalance as EntryEffect;
-      const titleBefore =
-        typeof entry.title === "string" ? entry.title.trim() : "";
-
-      if (
-        typeof amountBefore !== "number" ||
-        !Number.isFinite(amountBefore) ||
-        amountBefore <= 0
-      ) {
-        throw new HttpsError("failed-precondition", "רשומה לא תקינה");
-      }
-
-      if (effectBefore !== "increase" && effectBefore !== "decrease") {
-        throw new HttpsError("failed-precondition", "רשומה לא תקינה");
-      }
-
-      const intentBefore = resolveStoredIntent(
-        entry,
-        createdByUid,
-        balancePerspectiveUid
+    try {
+      const authStart = Date.now();
+      const uid = requireAuthUid(request);
+      const {cardId, entryId, intent, amount, title} = parseEditEntryPayload(
+        request.data
       );
+      perfCardId = cardId;
+      perfEntryId = entryId;
+      perf = createEntryResolvePerf("editEntry", cardId, entryId);
+      perf.logStage("authValidation", Date.now() - authStart);
 
-      const typeAfter = resolveTypeFromIntent(intent, uid, balancePerspectiveUid);
-      const effectAfter = effectForType(typeAfter);
-      const deltaBefore = balanceDelta(effectBefore, amountBefore);
-      const deltaAfter = balanceDelta(effectAfter, amount);
-      const deltaAdjustment = deltaAfter - deltaBefore;
+      const preTxStart = Date.now();
+      await assertCanEditEntry(cardId, entryId, uid);
+      perf.logStage("preTransactionAssert", Date.now() - preTxStart);
 
-      const titleChanged = titleBefore !== title;
-      const intentChanged = intentBefore !== intent;
-      const balanceChanged = deltaBefore !== deltaAfter;
+      const cardRef = db.collection("accountCards").doc(cardId);
+      const entryRef = cardRef.collection("entries").doc(entryId);
+      const auditRef = cardRef.collection("auditEvents").doc();
+      const now = FieldValue.serverTimestamp();
 
-      if (!titleChanged && !intentChanged && !balanceChanged) {
-        throw new HttpsError("failed-precondition", "לא בוצע שינוי");
-      }
+      const txStart = Date.now();
+      await db.runTransaction(async (transaction: Transaction) => {
+        const parallelReadsStart = Date.now();
 
-      const pendingEntriesAfterEdit = upsertPendingEntryRow(
-        summaryInputs.pendingEntries,
-        {
-          id: entryId,
-          status: "pending",
-          title,
-          amount,
-          effectOnPerspectiveBalance: effectAfter,
-          entryDate: entry.entryDate,
-          createdAt: entry.createdAt,
-          createdByUid,
+        const cardEntryReadsStart = Date.now();
+        const cardEntryPromise = Promise.all([
+          transaction.get(cardRef),
+          transaction.get(entryRef),
+        ]).then((result) => {
+          perf.logStage(
+            "transaction.cardEntryReads",
+            Date.now() - cardEntryReadsStart
+          );
+          return result;
+        });
+
+        const summaryInputsStart = Date.now();
+        const summaryInputsPromise = loadDashboardPendingSummaryInputs(
+          transaction,
+          cardRef
+        ).then((result) => {
+          perf.logStage(
+            "transaction.loadDashboardPendingSummaryInputs",
+            Date.now() - summaryInputsStart
+          );
+          return result;
+        });
+
+        const [cardEntryPair, summaryInputs] = await Promise.all([
+          cardEntryPromise,
+          summaryInputsPromise,
+        ]);
+        const [cardSnap, entrySnap] = cardEntryPair;
+        perf.logStage("transaction.readsParallel", Date.now() - parallelReadsStart);
+
+        const validationStart = Date.now();
+        if (!cardSnap.exists) {
+          throw new HttpsError("not-found", "הכרטיס לא נמצא");
         }
-      );
 
-      const summaryFields = buildDashboardPendingSummaryFields(
-        pendingEntriesAfterEdit,
-        summaryInputs.activeParticipants,
-        now
-      );
+        if (!entrySnap.exists) {
+          throw new HttpsError("not-found", "הרשומה לא נמצאה");
+        }
 
-      transaction.update(entryRef, {
-        intent,
-        type: typeAfter,
-        effectOnPerspectiveBalance: effectAfter,
-        amount,
-        title,
-        updatedAt: now,
-        editedAt: now,
-        editedByUid: uid,
-        editCount: FieldValue.increment(1),
+        const card = cardSnap.data();
+        if (card?.status !== "active") {
+          throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
+        }
+
+        const balancePerspectiveUid =
+          typeof card?.balancePerspectiveUid === "string" ?
+            card.balancePerspectiveUid :
+            null;
+        if (!balancePerspectiveUid) {
+          throw new HttpsError("failed-precondition", "כרטיס לא תקין");
+        }
+
+        const entry = entrySnap.data() ?? {};
+        assertEntryEditable(entry, uid);
+        perf.logStage("transaction.permissionValidation", Date.now() - validationStart);
+
+        const createdByUid = entry.createdByUid as string;
+        const amountBefore = entry.amount as number;
+        const effectBefore = entry.effectOnPerspectiveBalance as EntryEffect;
+        const titleBefore =
+          typeof entry.title === "string" ? entry.title.trim() : "";
+
+        if (
+          typeof amountBefore !== "number" ||
+          !Number.isFinite(amountBefore) ||
+          amountBefore <= 0
+        ) {
+          throw new HttpsError("failed-precondition", "רשומה לא תקינה");
+        }
+
+        if (effectBefore !== "increase" && effectBefore !== "decrease") {
+          throw new HttpsError("failed-precondition", "רשומה לא תקינה");
+        }
+
+        const intentBefore = resolveStoredIntent(
+          entry,
+          createdByUid,
+          balancePerspectiveUid
+        );
+
+        const typeAfter = resolveTypeFromIntent(intent, uid, balancePerspectiveUid);
+        const effectAfter = effectForType(typeAfter);
+        const deltaBefore = balanceDelta(effectBefore, amountBefore);
+        const deltaAfter = balanceDelta(effectAfter, amount);
+        const deltaAdjustment = deltaAfter - deltaBefore;
+
+        const titleChanged = titleBefore !== title;
+        const intentChanged = intentBefore !== intent;
+        const balanceChanged = deltaBefore !== deltaAfter;
+
+        if (!titleChanged && !intentChanged && !balanceChanged) {
+          throw new HttpsError("failed-precondition", "לא בוצע שינוי");
+        }
+
+        const pendingEntriesAfterEdit = upsertPendingEntryRow(
+          summaryInputs.pendingEntries,
+          {
+            id: entryId,
+            status: "pending",
+            title,
+            amount,
+            effectOnPerspectiveBalance: effectAfter,
+            entryDate: entry.entryDate,
+            createdAt: entry.createdAt,
+            createdByUid,
+          }
+        );
+
+        const summaryBuildStart = Date.now();
+        const summaryFields = buildDashboardPendingSummaryFields(
+          pendingEntriesAfterEdit,
+          summaryInputs.activeParticipants,
+          now
+        );
+        perf.logStage("transaction.summaryBuild", Date.now() - summaryBuildStart);
+
+        const writesStart = Date.now();
+        transaction.update(entryRef, {
+          intent,
+          type: typeAfter,
+          effectOnPerspectiveBalance: effectAfter,
+          amount,
+          title,
+          updatedAt: now,
+          editedAt: now,
+          editedByUid: uid,
+          editCount: FieldValue.increment(1),
+        });
+
+        transaction.update(cardRef, {
+          pendingBalanceImpact: FieldValue.increment(deltaAdjustment),
+          updatedAt: now,
+          ...summaryFields,
+        });
+
+        transaction.set(auditRef, {
+          action: "entry.edited",
+          actorUid: uid,
+          entityType: "entry",
+          entityId: entryId,
+          createdAt: now,
+          metadata: {
+            amountBefore,
+            amountAfter: amount,
+            effectBefore,
+            effectAfter,
+            deltaBefore,
+            deltaAfter,
+            deltaAdjustment,
+            titleChanged,
+            intentChanged,
+          },
+        });
+        perf.logStage("transaction.writes", Date.now() - writesStart);
       });
+      perf.logStage("transactionTotal", Date.now() - txStart);
 
-      transaction.update(cardRef, {
-        pendingBalanceImpact: FieldValue.increment(deltaAdjustment),
-        updatedAt: now,
-        ...summaryFields,
-      });
+      const postTxStart = Date.now();
+      const result = await readEntryMutationBalances(cardId, entryId);
+      perf.logStage("postTransactionResult", Date.now() - postTxStart);
 
-      transaction.set(auditRef, {
-        action: "entry.edited",
-        actorUid: uid,
-        entityType: "entry",
-        entityId: entryId,
-        createdAt: now,
-        metadata: {
-          amountBefore,
-          amountAfter: amount,
-          effectBefore,
-          effectAfter,
-          deltaBefore,
-          deltaAfter,
-          deltaAdjustment,
-          titleChanged,
-          intentChanged,
-        },
-      });
-    });
-
-    return readEntryMutationBalances(cardId, entryId);
+      perf.logTotal(true);
+      return result;
+    } catch (err) {
+      if (perfCardId && perfEntryId) {
+        perf.logTotal(false);
+      }
+      throw err;
+    }
   }
 );

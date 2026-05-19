@@ -1,12 +1,14 @@
 /**
- * מדידות זמניות ל-createEntry / approveEntry / rejectEntry — ללא תוכן רגיש.
+ * מדידות זמניות ל-entry mutations — ללא תוכן רגיש.
  * הסרה קלה: מחק קובץ זה והקריאות מ-entry handlers.
  */
 
 export type EntryResolveFunctionName =
   | "createEntry"
   | "approveEntry"
-  | "rejectEntry";
+  | "rejectEntry"
+  | "editEntry"
+  | "cancelEntry";
 
 const LOG_TAG = "[perf-entry-resolve]";
 
