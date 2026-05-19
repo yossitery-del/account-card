@@ -69,7 +69,8 @@ export function formatEntryForViewer(
     createdByUid: string;
   },
   viewerUid: string,
-  balancePerspectiveUid: string
+  balancePerspectiveUid: string,
+  otherName?: string
 ): { intentLabel: string; amountLine: string } {
   const creatorIntent = getCreatorIntent(entry, balancePerspectiveUid);
   const viewerIntent: EntryIntent =
@@ -81,8 +82,8 @@ export function formatEntryForViewer(
 
   const intentLabel =
     viewerIntent === "to_receive"
-      ? entriesCopy.receiveLabel
-      : entriesCopy.payLabel;
+      ? entriesCopy.receiveLabel(otherName)
+      : entriesCopy.payLabel(otherName);
 
   const canonicalDelta = canonicalDeltaFromEffect(
     entry.effectOnPerspectiveBalance,

@@ -109,8 +109,8 @@ export function CardListItem({
           err instanceof Error
             ? err.message
             : kind === "approve"
-              ? "לא הצלחנו לאשר את הרשומה. נסה שוב."
-              : "לא הצלחנו לדחות את הרשומה. נסה שוב."
+              ? "לא הצלחנו לאשר את הפעולה. נסה שוב."
+              : "לא הצלחנו לדחות את הפעולה. נסה שוב."
         );
       } finally {
         setBusyKind(null);

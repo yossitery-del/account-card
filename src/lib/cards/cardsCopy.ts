@@ -1,6 +1,6 @@
 /** נוסח UI לכרטיסים — copy בלבד */
 
 export const cardsCopy = {
-  balanceInCard: "יתרה בכרטיס",
+  balanceInCard: "יתרתך",
   pendingApproval: "ממתין לאישור",
 } as const;

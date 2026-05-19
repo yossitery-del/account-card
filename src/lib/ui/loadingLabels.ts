@@ -8,6 +8,6 @@ export const loadingLabels = {
   creatingInvite: "יוצר הזמנה…",
   creatingCard: "יוצר כרטיס…",
   joiningCard: "מצטרף לכרטיס…",
-  entries: "טוען רשומות…",
+  entries: "טוען פעולות…",
   updating: "מעדכן…",
 } as const;

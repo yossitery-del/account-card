@@ -16,16 +16,16 @@ function mapRejectEntryError(err: unknown): string {
       return "אין לך הרשאה לפעולה זו";
     }
     if (err.code === "functions/not-found") {
-      return "הרשומה לא נמצאה";
+      return "הפעולה לא נמצאה";
     }
     if (err.code === "functions/failed-precondition") {
-      return "הרשומה כבר לא ממתינה לאישור";
+      return "הפעולה כבר לא ממתינה לאישור";
     }
     if (err.code === "functions/invalid-argument") {
       return "הפרטים שהוזנו לא תקינים";
     }
   }
-  return "לא הצלחנו לדחות את הרשומה. נסה שוב.";
+  return "לא הצלחנו לדחות את הפעולה. נסה שוב.";
 }
 
 export async function rejectEntry(

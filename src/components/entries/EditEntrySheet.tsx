@@ -20,6 +20,7 @@ type EditEntrySheetProps = {
   onClose: () => void;
   onEdited: (result: EntryMutationCallableResult) => void | Promise<void>;
   onPendingChange?: (pending: boolean) => void;
+  otherParticipantName?: string;
 };
 
 export function EditEntrySheet({
@@ -30,6 +31,7 @@ export function EditEntrySheet({
   onClose,
   onEdited,
   onPendingChange,
+  otherParticipantName,
 }: EditEntrySheetProps) {
   const { user } = useAuth();
   const [selectedIntent, setSelectedIntent] = useState<EntryIntent | null>(() =>
@@ -69,7 +71,7 @@ export function EditEntrySheet({
       setError(null);
 
       if (!entry || !selectedIntent) {
-        setError("נא לבחור זיכוי או חיוב");
+        setError("נא לבחור פעולה");
         return;
       }
 
@@ -138,14 +140,14 @@ export function EditEntrySheet({
 
         <div className="grid grid-cols-2 gap-3" dir="rtl">
           <TypeChoiceButton
-            label={entriesCopy.receiveLabel}
+            label={entriesCopy.receiveLabel(otherParticipantName)}
             helper={entriesCopy.receiveHelper}
             selected={selectedIntent === "to_receive"}
             disabled={pending}
             onClick={() => setSelectedIntent("to_receive")}
           />
           <TypeChoiceButton
-            label={entriesCopy.payLabel}
+            label={entriesCopy.payLabel(otherParticipantName)}
             helper={entriesCopy.payHelper}
             selected={selectedIntent === "to_pay"}
             disabled={pending}

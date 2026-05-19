@@ -11,6 +11,7 @@ type EntryListProps = {
   currentUid: string;
   balancePerspectiveUid: string;
   participantNames: Map<string, string>;
+  otherParticipantName?: string;
   loading?: boolean;
   refreshing?: boolean;
   error?: string | null;
@@ -29,6 +30,7 @@ export const EntryList = forwardRef<HTMLElement, EntryListProps>(function EntryL
     currentUid,
     balancePerspectiveUid,
     participantNames,
+    otherParticipantName,
     loading = false,
     refreshing = false,
     error = null,
@@ -90,6 +92,7 @@ export const EntryList = forwardRef<HTMLElement, EntryListProps>(function EntryL
                 creatorDisplayName={
                   participantNames.get(entry.createdByUid) ?? "משתתף"
                 }
+                otherParticipantName={otherParticipantName}
                 actingEntryId={actingEntryId}
                 actingKind={actingKind}
                 onApprove={onApprove}

@@ -13,19 +13,19 @@ function mapCancelEntryError(err: unknown): string {
       return "נדרשת התחברות";
     }
     if (err.code === "functions/permission-denied") {
-      return "אין לך הרשאה לבטל את הרשומה";
+      return "אין לך הרשאה לבטל את הפעולה";
     }
     if (err.code === "functions/not-found") {
-      return "הרשומה לא נמצאה";
+      return "הפעולה לא נמצאה";
     }
     if (err.code === "functions/failed-precondition") {
-      return "הרשומה כבר לא ניתנת לביטול";
+      return "הפעולה כבר לא ניתנת לביטול";
     }
     if (err.code === "functions/invalid-argument") {
       return "הפרטים שהוזנו לא תקינים";
     }
   }
-  return "לא הצלחנו לבטל את הרשומה. נסה שוב.";
+  return "לא הצלחנו לבטל את הפעולה. נסה שוב.";
 }
 
 export async function cancelEntry(

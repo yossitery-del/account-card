@@ -16,17 +16,17 @@ function mapEditEntryError(err: unknown): string {
       return "נדרשת התחברות";
     }
     if (err.code === "functions/permission-denied") {
-      return "אין לך הרשאה לערוך את הרשומה";
+      return "אין לך הרשאה לערוך את הפעולה";
     }
     if (err.code === "functions/not-found") {
-      return "הרשומה לא נמצאה";
+      return "הפעולה לא נמצאה";
     }
     if (err.code === "functions/failed-precondition") {
       const message = err.message;
       if (message.includes("לא בוצע שינוי")) {
         return entriesCopy.noChange;
       }
-      return "הרשומה כבר לא ניתנת לעריכה";
+      return "הפעולה כבר לא ניתנת לעריכה";
     }
     if (err.code === "functions/invalid-argument") {
       return "הפרטים שהוזנו לא תקינים";

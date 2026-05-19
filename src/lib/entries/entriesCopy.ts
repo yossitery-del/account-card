@@ -1,21 +1,23 @@
 /** נוסח UI לרשומות — Stage 2C */
 
+const fallbackOtherName = "הצד השני";
+
 export const entriesCopy = {
-  addButton: "הוספת רשומה",
+  addButton: "הוסף פעולה",
   modalTitle: "מה לעדכן בחשבון?",
-  receiveLabel: "זיכוי",
-  receiveHelper: "מגדיל את הזכות שלי",
-  payLabel: "חיוב",
-  payHelper: "מגדיל את החובה שלי",
+  receiveLabel: (otherName = fallbackOtherName) => `${otherName} חייב לי`,
+  receiveHelper: "כסף שמגיע אליי",
+  payLabel: (otherName = fallbackOtherName) => `אני חייב ל־${otherName}`,
+  payHelper: "כסף שאני צריך לשלם",
   amountLabel: "סכום",
   titleLabel: "פירוט קצר",
   titlePlaceholder: "לדוגמה: עבודה, מקדמה, החזר, אספקה",
   submit: "שליחה לאישור",
   submitHint:
-    "הרשומה לא נכנסת ליתרה בכרטיס מיד. היא נשלחת לאישור הצד השני.",
-  listTitle: "רשומות בכרטיס",
-  emptyTitle: "עדיין אין רשומות בכרטיס",
-  emptyBody: "הוסף רשומה כדי להתחיל לעדכן את החשבון.",
+    "הפעולה לא נכנסת ליתרתך מיד. היא נשלחת לאישור הצד השני.",
+  listTitle: "פעולות בכרטיס",
+  emptyTitle: "עדיין אין פעולות בכרטיס",
+  emptyBody: "הוסף פעולה כדי להתחיל לעדכן את החשבון.",
   pendingChip: "ממתין לאישור",
   pendingYourApproval: "ממתין לאישור שלך",
   pendingOtherSide: "ממתין לאישור הצד השני",
@@ -26,7 +28,7 @@ export const entriesCopy = {
   approvedChip: "אושר",
   rejectedChip: "נדחה",
   edit: "עריכה",
-  editModalTitle: "עריכת רשומה",
+  editModalTitle: "עריכת פעולה",
   editSubmit: "שמירת שינוי",
   saving: "שומרים…",
   noChange: "לא בוצע שינוי",

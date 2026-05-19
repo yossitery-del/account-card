@@ -127,7 +127,7 @@ export default function CardDetailPage() {
       setEntriesError(null);
     } catch (err) {
       console.error("refreshCardData failed:", err);
-      setEntriesError("לא הצלחנו לטעון את הרשומות. נסה שוב.");
+      setEntriesError("לא הצלחנו לטעון את הפעולות. נסה שוב.");
     } finally {
       setContextLoading(false);
       setEntriesRefreshing(false);
@@ -259,7 +259,7 @@ export default function CardDetailPage() {
       } catch (err) {
         console.error("listEntries failed:", err);
         if (isCurrentLoad()) {
-          setEntriesError("לא הצלחנו לטעון את הרשומות. נסה שוב.");
+          setEntriesError("לא הצלחנו לטעון את הפעולות. נסה שוב.");
         }
       } finally {
         if (isCurrentLoad()) {
@@ -338,6 +338,10 @@ export default function CardDetailPage() {
   const canAddEntry =
     context?.currentParticipant.permissions.canAddEntry === true;
   const activeParticipantsCount = context?.activeParticipantsCount ?? 0;
+  const otherParticipantName =
+    user
+      ? [...participantNames.entries()].find(([uid]) => uid !== user.uid)?.[1]
+      : undefined;
 
   const handleApprove = useCallback(
     async (entryId: string) => {
@@ -350,7 +354,7 @@ export default function CardDetailPage() {
         await refreshAfterEntryMutation(result);
       } catch (err) {
         setEntryActionError(
-          err instanceof Error ? err.message : "לא הצלחנו לאשר את הרשומה"
+          err instanceof Error ? err.message : "לא הצלחנו לאשר את הפעולה"
         );
       } finally {
         setActingEntryId(null);
@@ -371,7 +375,7 @@ export default function CardDetailPage() {
         await refreshAfterEntryMutation(result);
       } catch (err) {
         setEntryActionError(
-          err instanceof Error ? err.message : "לא הצלחנו לדחות את הרשומה"
+          err instanceof Error ? err.message : "לא הצלחנו לדחות את הפעולה"
         );
       } finally {
         setActingEntryId(null);
@@ -403,7 +407,7 @@ export default function CardDetailPage() {
         await refreshAfterEntryMutation(result);
       } catch (err) {
         setEntryActionError(
-          err instanceof Error ? err.message : "לא הצלחנו לבטל את הרשומה"
+          err instanceof Error ? err.message : "לא הצלחנו לבטל את הפעולה"
         );
       } finally {
         setActingEntryId(null);
@@ -506,6 +510,7 @@ export default function CardDetailPage() {
               currentUid={user.uid}
               balancePerspectiveUid={card.balancePerspectiveUid}
               participantNames={participantNames}
+              otherParticipantName={otherParticipantName}
               loading={entriesLoading && entries.length === 0}
               refreshing={entriesRefreshing && entriesLoaded && !mutationProcessing}
               error={entriesError}
@@ -523,6 +528,7 @@ export default function CardDetailPage() {
               cardId={cardId}
               entry={editingEntry}
               balancePerspectiveUid={card.balancePerspectiveUid}
+              otherParticipantName={otherParticipantName}
               open={editOpen}
               onClose={() => {
                 setEditOpen(false);
@@ -536,6 +542,7 @@ export default function CardDetailPage() {
 
             <AddEntrySheet
               cardId={cardId}
+              otherParticipantName={otherParticipantName}
               open={addOpen}
               onClose={() => setAddOpen(false)}
               onCreated={async (result) => {

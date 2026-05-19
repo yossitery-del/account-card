@@ -17,6 +17,7 @@ type AddEntrySheetProps = {
   onClose: () => void;
   onCreated: (result: CreateEntryCallableResult) => void | Promise<void>;
   onPendingChange?: (pending: boolean) => void;
+  otherParticipantName?: string;
 };
 
 export function AddEntrySheet({
@@ -25,6 +26,7 @@ export function AddEntrySheet({
   onClose,
   onCreated,
   onPendingChange,
+  otherParticipantName,
 }: AddEntrySheetProps) {
   const { user } = useAuth();
   const [selectedIntent, setSelectedIntent] = useState<EntryIntent | null>(null);
@@ -67,7 +69,7 @@ export function AddEntrySheet({
       setError(null);
 
       if (!selectedIntent) {
-        setError("נא לבחור זיכוי או חיוב");
+        setError("נא לבחור פעולה");
         return;
       }
 
@@ -104,7 +106,7 @@ export function AddEntrySheet({
         setError(
           err instanceof Error
             ? err.message
-            : "לא הצלחנו לשלוח את הרשומה. נסה שוב."
+            : "לא הצלחנו לשלוח את הפעולה. נסה שוב."
         );
       } finally {
         setPending(false);
@@ -135,14 +137,14 @@ export function AddEntrySheet({
 
         <div className="grid grid-cols-2 gap-3" dir="rtl">
           <TypeChoiceButton
-            label={entriesCopy.receiveLabel}
+            label={entriesCopy.receiveLabel(otherParticipantName)}
             helper={entriesCopy.receiveHelper}
             selected={selectedIntent === "to_receive"}
             disabled={pending}
             onClick={() => setSelectedIntent("to_receive")}
           />
           <TypeChoiceButton
-            label={entriesCopy.payLabel}
+            label={entriesCopy.payLabel(otherParticipantName)}
             helper={entriesCopy.payHelper}
             selected={selectedIntent === "to_pay"}
             disabled={pending}

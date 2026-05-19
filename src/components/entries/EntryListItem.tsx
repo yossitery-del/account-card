@@ -14,6 +14,7 @@ type EntryListItemProps = {
   currentUid: string;
   balancePerspectiveUid: string;
   creatorDisplayName: string;
+  otherParticipantName?: string;
   actingEntryId: string | null;
   actingKind: "approve" | "reject" | "cancel" | null;
   onApprove?: (entryId: string) => void;
@@ -27,6 +28,7 @@ export function EntryListItem({
   currentUid,
   balancePerspectiveUid,
   creatorDisplayName,
+  otherParticipantName,
   actingEntryId,
   actingKind,
   onApprove,
@@ -47,7 +49,8 @@ export function EntryListItem({
   const { intentLabel, amountLine } = formatEntryForViewer(
     entry,
     currentUid,
-    balancePerspectiveUid
+    balancePerspectiveUid,
+    otherParticipantName
   );
 
   const attribution = isOwn

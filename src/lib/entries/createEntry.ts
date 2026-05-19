@@ -44,19 +44,19 @@ function mapCreateEntryError(err: unknown): string {
       return "נדרשת התחברות";
     }
     if (err.code === "functions/permission-denied") {
-      return "אין לך הרשאה להוסיף רשומה";
+      return "אין לך הרשאה להוסיף פעולה";
     }
     if (err.code === "functions/not-found") {
       return "הכרטיס לא נמצא";
     }
     if (err.code === "functions/failed-precondition") {
-      return "הכרטיס אינו זמין להוספת רשומה";
+      return "הכרטיס אינו זמין להוספת פעולה";
     }
     if (err.code === "functions/invalid-argument") {
       return "הפרטים שהוזנו לא תקינים";
     }
   }
-  return "לא הצלחנו לשלוח את הרשומה. נסה שוב.";
+  return "לא הצלחנו לשלוח את הפעולה. נסה שוב.";
 }
 
 export async function createEntry(
