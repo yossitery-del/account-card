@@ -68,7 +68,7 @@ export function BrandMark({
         </span>
         {isHero ? (
           <span className="mt-2 block text-sm leading-relaxed text-[var(--color-mist)]">
-            פנקס משותף — תיעוד והסכמה
+            חשבון משותף. ברור. מאושר על ידי שני הצדדים.
           </span>
         ) : null}
       </span>

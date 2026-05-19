@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/auth/SignOutButton";
-import { BrandMark } from "@/components/brand/BrandMark";
+import { BrandMarkButton } from "@/components/brand/BrandMarkButton";
 
 type AppShellHeaderProps = {
   title: string;
@@ -22,7 +22,7 @@ export function AppShellHeader({
     return (
       <header className="relative mb-8">
         <div className="mb-5 flex items-center justify-between gap-3">
-          <BrandMark />
+          <BrandMarkButton />
           <SignOutButton variant="subtle" />
         </div>
 
@@ -46,7 +46,7 @@ export function AppShellHeader({
   return (
     <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <BrandMark className="mb-5" />
+        <BrandMarkButton className="mb-5" />
         <h1 className="text-2xl font-medium text-[var(--color-pearl)]">{title}</h1>
       </div>
       <div className="flex items-center gap-3">

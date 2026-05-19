@@ -1,19 +1,16 @@
 # נכסי אייקון PWA — כרטיס חשבון
 
-Stage 0: תכנון בלבד. `favicon.svg` בשורש `public/` הוא placeholder גיאומטרי (וריאנט A משודרג).
+נכסי אייקון קלים ל־PWA, מסך בית ו־favicon. האייקון הוא סימן בלבד ללא טקסט כדי להישאר קריא בגדלים קטנים.
 
-## נכסים נדרשים (לא נוצרו ב־Stage 0)
+## נכסים קיימים
 
 | קובץ | גודל | הערות |
 |------|------|--------|
-| `favicon.svg` | vector | ✅ placeholder ב־`/public/favicon.svg` |
-| `favicon.ico` | 16, 32, 48 multi | ליצור בשלב עיצוב |
-| `favicon-16x16.png` | 16×16 | |
-| `favicon-32x32.png` | 32×32 | |
+| `favicon.svg` | vector | `/public/favicon.svg` |
 | `apple-touch-icon.png` | 180×180 | iOS |
 | `icon-192.png` | 192×192 | Android manifest |
-| `icon-512.png` | 512×512 | splash |
-| `icon-512-maskable.png` | 512×512 | safe zone ~80% |
+| `icon-512.png` | 512×512 | Android manifest / splash |
+| `icon-512-maskable.png` | 512×512 | maskable safe zone |
 
 ## כיוון ויזואלי (וריאנט A)
 

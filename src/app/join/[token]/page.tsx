@@ -3,7 +3,7 @@
 import { FirebaseError } from "firebase/app";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { BrandMark } from "@/components/brand/BrandMark";
+import { BrandMarkButton } from "@/components/brand/BrandMarkButton";
 import { JoinPreviewScreen } from "@/components/join/JoinPreviewScreen";
 import { LoadingVault } from "@/components/ui/LoadingVault";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
@@ -56,7 +56,7 @@ export default function JoinPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-12">
       <div className="mx-auto w-full max-w-lg">
-        <BrandMark align="center" className="mb-6" />
+        <BrandMarkButton align="center" className="mb-6" />
 
         {loading ? (
           <LoadingVault inline label={loadingLabels.default} />

@@ -1,4 +1,4 @@
-import { BrandMark } from "@/components/brand/BrandMark";
+import { BrandMarkButton } from "@/components/brand/BrandMarkButton";
 import { LoginRedirect } from "@/components/auth/LoginRedirect";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { LoginAuthMessage } from "@/components/auth/LoginAuthMessage";
@@ -11,7 +11,7 @@ export default function LoginPage() {
           <p className="mb-5 text-sm tracking-wide text-[var(--color-champagne)]">
             פנקס בתוך כספת
           </p>
-          <BrandMark align="center" size="hero" className="mb-8" />
+          <BrandMarkButton align="center" size="hero" className="mb-8" />
 
           <LoginAuthMessage />
           <GoogleSignInButton />
