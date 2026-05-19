@@ -7,6 +7,7 @@ import {
 } from "../lib/assertCanApproveEntry";
 import {db} from "../lib/admin";
 import {WARMED_ENTRY_CALLABLE_OPTIONS} from "../lib/callableOptions";
+import {createEntryResolvePerf} from "../lib/entryResolveCallablePerf";
 import {parseEntryActionPayload} from "../lib/entryActionPayload";
 import {requireAuthUid} from "../lib/auth";
 import {
@@ -33,86 +34,143 @@ export type RejectEntryOutput = Awaited<
 export const rejectEntry = onCall(
   WARMED_ENTRY_CALLABLE_OPTIONS,
   async (request): Promise<RejectEntryOutput> => {
-    const uid = requireAuthUid(request);
-    const data = parseEntryActionPayload(request.data);
+    let perfCardId = "";
+    let perfEntryId = "";
+    let perf = createEntryResolvePerf("rejectEntry", "", "");
 
-    const cardId = parseCardId(data.cardId);
-    const entryId = parseEntryId(data.entryId);
-    const rejectionNote = parseRejectionNote(data.rejectionNote);
+    try {
+      const authStart = Date.now();
+      const uid = requireAuthUid(request);
+      const data = parseEntryActionPayload(request.data);
+      const cardId = parseCardId(data.cardId);
+      const entryId = parseEntryId(data.entryId);
+      const rejectionNote = parseRejectionNote(data.rejectionNote);
+      perfCardId = cardId;
+      perfEntryId = entryId;
+      perf = createEntryResolvePerf("rejectEntry", cardId, entryId);
+      perf.logStage("authValidation", Date.now() - authStart);
 
-    await assertCanApproveEntry(cardId, entryId, uid);
+      const preTxStart = Date.now();
+      await assertCanApproveEntry(cardId, entryId, uid);
+      perf.logStage("preTransactionAssert", Date.now() - preTxStart);
 
-    const cardRef = db.collection("accountCards").doc(cardId);
-    const entryRef = cardRef.collection("entries").doc(entryId);
-    const auditRef = cardRef.collection("auditEvents").doc();
-    const now = FieldValue.serverTimestamp();
+      const cardRef = db.collection("accountCards").doc(cardId);
+      const entryRef = cardRef.collection("entries").doc(entryId);
+      const auditRef = cardRef.collection("auditEvents").doc();
+      const now = FieldValue.serverTimestamp();
 
-    await db.runTransaction(async (transaction: Transaction) => {
-      const [cardSnap, entrySnap, summaryInputs] = await Promise.all([
-        transaction.get(cardRef),
-        transaction.get(entryRef),
-        loadDashboardPendingSummaryInputs(transaction, cardRef),
-      ]);
+      const txStart = Date.now();
+      await db.runTransaction(async (transaction: Transaction) => {
+        const parallelReadsStart = Date.now();
 
-      if (!cardSnap.exists) {
-        throw new HttpsError("not-found", "הכרטיס לא נמצא");
-      }
+        const cardEntryReadsStart = Date.now();
+        const cardEntryPromise = Promise.all([
+          transaction.get(cardRef),
+          transaction.get(entryRef),
+        ]).then((result) => {
+          perf.logStage(
+            "transaction.cardEntryReads",
+            Date.now() - cardEntryReadsStart
+          );
+          return result;
+        });
 
-      if (!entrySnap.exists) {
-        throw new HttpsError("not-found", "הרשומה לא נמצאה");
-      }
+        const summaryInputsStart = Date.now();
+        const summaryInputsPromise = loadDashboardPendingSummaryInputs(
+          transaction,
+          cardRef
+        ).then((result) => {
+          perf.logStage(
+            "transaction.loadDashboardPendingSummaryInputs",
+            Date.now() - summaryInputsStart
+          );
+          return result;
+        });
 
-      const card = cardSnap.data();
-      if (card?.status !== "active") {
-        throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
-      }
+        const [cardEntryPair, summaryInputs] = await Promise.all([
+          cardEntryPromise,
+          summaryInputsPromise,
+        ]);
+        const [cardSnap, entrySnap] = cardEntryPair;
+        perf.logStage("transaction.readsParallel", Date.now() - parallelReadsStart);
 
-      const entry = entrySnap.data() ?? {};
-      assertEntryApprovable(entry, uid);
+        if (!cardSnap.exists) {
+          throw new HttpsError("not-found", "הכרטיס לא נמצא");
+        }
 
-      const delta = parseEntryDelta(entry);
-      const amount = entry.amount as number;
-      const effectOnPerspectiveBalance = entry.effectOnPerspectiveBalance as string;
+        if (!entrySnap.exists) {
+          throw new HttpsError("not-found", "הרשומה לא נמצאה");
+        }
 
-      const pendingEntriesAfterResolve = excludePendingEntryById(
-        summaryInputs.pendingEntries,
-        entryId
-      );
+        const card = cardSnap.data();
+        if (card?.status !== "active") {
+          throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
+        }
 
-      const summaryFields = buildDashboardPendingSummaryFields(
-        pendingEntriesAfterResolve,
-        summaryInputs.activeParticipants,
-        now
-      );
+        const entry = entrySnap.data() ?? {};
+        assertEntryApprovable(entry, uid);
 
-      transaction.update(entryRef, {
-        status: "rejected",
-        rejectedByUid: uid,
-        rejectedAt: now,
-        rejectionNote,
+        const delta = parseEntryDelta(entry);
+        const amount = entry.amount as number;
+        const effectOnPerspectiveBalance = entry.effectOnPerspectiveBalance as string;
+
+        const pendingEntriesAfterResolve = excludePendingEntryById(
+          summaryInputs.pendingEntries,
+          entryId
+        );
+
+        const summaryBuildStart = Date.now();
+        const summaryFields = buildDashboardPendingSummaryFields(
+          pendingEntriesAfterResolve,
+          summaryInputs.activeParticipants,
+          now
+        );
+        perf.logStage("transaction.summaryBuild", Date.now() - summaryBuildStart);
+
+        const writesStart = Date.now();
+        transaction.update(entryRef, {
+          status: "rejected",
+          rejectedByUid: uid,
+          rejectedAt: now,
+          rejectionNote,
+        });
+
+        transaction.update(cardRef, {
+          pendingBalanceImpact: FieldValue.increment(-delta),
+          updatedAt: now,
+          ...summaryFields,
+        });
+
+        transaction.set(auditRef, {
+          action: "entry.rejected",
+          actorUid: uid,
+          entityType: "entry",
+          entityId: entryId,
+          createdAt: now,
+          metadata: {
+            amount,
+            effectOnPerspectiveBalance,
+            delta,
+            hasRejectionNote: rejectionNote !== null,
+          },
+        });
+        perf.logStage("transaction.writes", Date.now() - writesStart);
       });
+      perf.logStage("transactionTotal", Date.now() - txStart);
 
-      transaction.update(cardRef, {
-        pendingBalanceImpact: FieldValue.increment(-delta),
-        updatedAt: now,
-        ...summaryFields,
+      const postTxStart = Date.now();
+      const result = await readEntryMutationResult(cardId, entryId, {
+        viewerUid: uid,
       });
+      perf.logStage("postTransactionResult", Date.now() - postTxStart);
 
-      transaction.set(auditRef, {
-        action: "entry.rejected",
-        actorUid: uid,
-        entityType: "entry",
-        entityId: entryId,
-        createdAt: now,
-        metadata: {
-          amount,
-          effectOnPerspectiveBalance,
-          delta,
-          hasRejectionNote: rejectionNote !== null,
-        },
-      });
-    });
-
-    return readEntryMutationResult(cardId, entryId, {viewerUid: uid});
+      perf.logTotal(true);
+      return result;
+    } catch (err) {
+      if (perfCardId && perfEntryId) {
+        perf.logTotal(false);
+      }
+      throw err;
+    }
   }
 );
