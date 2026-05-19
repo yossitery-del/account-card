@@ -2,7 +2,7 @@
 
 export const cardsCopy = {
   balanceInCard: "יתרתך",
-  pendingApproval: "ממתין לאישור",
+  pendingApproval: "ממתין לאישורך",
   pendingYourApproval: "ממתין לאישורך",
   pendingAwaitingCount: (count: number) =>
     `${count} פעולות ממתינות לאישורך`,
