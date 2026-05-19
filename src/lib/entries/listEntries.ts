@@ -37,8 +37,9 @@ export async function listEntries(cardId: string): Promise<EntriesListResult> {
   const participantNames = new Map<string, string>();
   for (const docSnap of participantsSnap.docs) {
     const p = docSnap.data() as CardParticipant;
-    if (p.uid) {
-      participantNames.set(p.uid, p.displayName || "משתתף");
+    const displayName = p.displayName?.trim();
+    if (p.uid && displayName) {
+      participantNames.set(p.uid, displayName);
     }
   }
 

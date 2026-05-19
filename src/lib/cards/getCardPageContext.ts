@@ -9,6 +9,7 @@ export type CardPageContext = {
   card: AccountCardWithId;
   currentParticipant: CardParticipant;
   activeParticipantsCount: number;
+  otherParticipantName?: string;
 };
 
 /**
@@ -47,6 +48,17 @@ export async function getCardPageContext(
       where("status", "==", "active")
     )
   );
+  const otherParticipantName = activeSnap.docs
+    .map((docSnap) => {
+      const participant = docSnap.data() as CardParticipant;
+      const participantUid =
+        typeof participant.uid === "string" && participant.uid
+          ? participant.uid
+          : docSnap.id;
+      const displayName = participant.displayName?.trim();
+      return participantUid !== uid && displayName ? displayName : null;
+    })
+    .find((name): name is string => name !== null);
 
   return {
     card: {
@@ -55,5 +67,6 @@ export async function getCardPageContext(
     },
     currentParticipant,
     activeParticipantsCount: activeSnap.size,
+    otherParticipantName,
   };
 }

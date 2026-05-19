@@ -339,9 +339,12 @@ export default function CardDetailPage() {
     context?.currentParticipant.permissions.canAddEntry === true;
   const activeParticipantsCount = context?.activeParticipantsCount ?? 0;
   const otherParticipantName =
-    user
+    context?.otherParticipantName ??
+    (user
       ? [...participantNames.entries()].find(([uid]) => uid !== user.uid)?.[1]
-      : undefined;
+      : undefined) ??
+    card?.title?.trim() ??
+    cachedCard?.title?.trim();
 
   const handleApprove = useCallback(
     async (entryId: string) => {
