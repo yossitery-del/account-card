@@ -15,7 +15,6 @@ import {
   formatOfficialBalanceAmount,
   formatPendingBalanceDisplay,
 } from "@/lib/cards/formatBalance";
-import { measurePerfEntryAction } from "@/lib/dev/perfDiagnostics";
 import { approveEntry } from "@/lib/entries/approveEntry";
 import { entriesCopy } from "@/lib/entries/entriesCopy";
 import { rejectEntry } from "@/lib/entries/rejectEntry";
@@ -100,23 +99,11 @@ export function CardListItem({
       setActionError(null);
 
       try {
-        await measurePerfEntryAction(
-          {
-            action: kind,
-            surface: "dashboard",
-            cardId: card.id,
-            entryId: quickActionTarget.entryId,
-          },
-          {
-            callable: () =>
-              kind === "approve"
-                ? approveEntry(user, card.id, quickActionTarget.entryId)
-                : rejectEntry(user, card.id, quickActionTarget.entryId),
-            refresh: async (mutation) => {
-              await onCardRefresh(card.id, mutation);
-            },
-          }
-        );
+        const mutation =
+          kind === "approve"
+            ? await approveEntry(user, card.id, quickActionTarget.entryId)
+            : await rejectEntry(user, card.id, quickActionTarget.entryId);
+        await onCardRefresh(card.id, mutation);
       } catch (err) {
         setActionError(
           err instanceof Error

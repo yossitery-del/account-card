@@ -2,7 +2,6 @@
 
 import { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
-import { withPerf } from "@/lib/dev/perfLog";
 import {
   callCreateEntryFunction,
   type CreateEntryCallableResult,
@@ -77,14 +76,12 @@ export async function createEntry(
   }
 
   try {
-    return await withPerf("createEntry", () =>
-      callCreateEntryFunction({
-        cardId,
-        intent,
-        amount,
-        title: title.trim(),
-      })
-    );
+    return await callCreateEntryFunction({
+      cardId,
+      intent,
+      amount,
+      title: title.trim(),
+    });
   } catch (err) {
     throw new Error(mapCreateEntryError(err));
   }

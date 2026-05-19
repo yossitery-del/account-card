@@ -1,6 +1,5 @@
 "use client";
 
-import { withPerf } from "@/lib/dev/perfLog";
 import { callAcceptInvitationFunction } from "@/lib/firebase/functions";
 
 export type AcceptInvitationResult = {
@@ -15,7 +14,5 @@ export async function acceptInvitation(
   if (!trimmed) {
     throw new Error("missing token");
   }
-  return withPerf("acceptInvitation", () =>
-    callAcceptInvitationFunction(trimmed)
-  );
+  return callAcceptInvitationFunction(trimmed);
 }

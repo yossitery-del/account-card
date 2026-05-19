@@ -45,10 +45,6 @@ import { cancelEntry } from "@/lib/entries/cancelEntry";
 import { entriesCopy } from "@/lib/entries/entriesCopy";
 import { listEntries } from "@/lib/entries/listEntries";
 import { rejectEntry } from "@/lib/entries/rejectEntry";
-import {
-  measurePerfEntryAction,
-  perfLog,
-} from "@/lib/dev/perfDiagnostics";
 import type { AccountCardEntryWithId } from "@/types/entry";
 
 export default function CardDetailPage() {
@@ -82,12 +78,7 @@ export default function CardDetailPage() {
   const didScrollToPendingRef = useRef(false);
   const loadGenerationRef = useRef(0);
   const contextRef = useRef<CardPageContext | null>(null);
-  const cardSessionStartRef = useRef(0);
   const authUid = user?.uid ?? null;
-
-  useEffect(() => {
-    cardSessionStartRef.current = performance.now();
-  }, [cardId]);
 
   useEffect(() => {
     contextRef.current = context;
@@ -228,27 +219,13 @@ export default function CardDetailPage() {
       setEntriesError(null);
     });
 
-    perfLog("card", "auth ready", {
-      ms: Math.round(performance.now() - cardSessionStartRef.current),
-    });
-
-    const parallelStart = performance.now();
-    let contextMs = 0;
-    let entriesMs = 0;
-    let entryCount = 0;
-    let participantCount = 0;
-
     const isCurrentLoad = () =>
       !cancelled && loadId === loadGenerationRef.current;
 
     const contextPromise = (async () => {
-      const stepStart = performance.now();
       try {
         const ctx = await getCardPageContext(cardId, user.uid);
-        contextMs = Math.round(performance.now() - stepStart);
         if (!isCurrentLoad()) return;
-
-        perfLog("card", "getCardPageContext", { ms: contextMs });
 
         if (!ctx) {
           setError("לא נמצא כרטיס או שאין לך גישה אליו.");
@@ -262,9 +239,7 @@ export default function CardDetailPage() {
         setError(null);
       } catch (err) {
         console.error("getCardPageContext failed:", err);
-        contextMs = Math.round(performance.now() - stepStart);
         if (isCurrentLoad()) {
-          perfLog("card", "getCardPageContext failed", { ms: contextMs });
           setError("לא הצלחנו לטעון את הכרטיס. נסה שוב.");
         }
       } finally {
@@ -275,26 +250,15 @@ export default function CardDetailPage() {
     })();
 
     const entriesPromise = (async () => {
-      const stepStart = performance.now();
       try {
         const entriesResult = await listEntries(cardId);
-        entriesMs = Math.round(performance.now() - stepStart);
-        entryCount = entriesResult.entries.length;
-        participantCount = entriesResult.participantNames.size;
         if (!isCurrentLoad()) return;
 
-        perfLog("card", "listEntries", {
-          ms: entriesMs,
-          entryCount,
-          participantCount,
-        });
         applyEntriesResult(entriesResult);
         setEntriesError(null);
       } catch (err) {
         console.error("listEntries failed:", err);
-        entriesMs = Math.round(performance.now() - stepStart);
         if (isCurrentLoad()) {
-          perfLog("card", "listEntries failed", { ms: entriesMs });
           setEntriesError("לא הצלחנו לטעון את הרשומות. נסה שוב.");
         }
       } finally {
@@ -307,12 +271,6 @@ export default function CardDetailPage() {
     void Promise.allSettled([contextPromise, entriesPromise]).then(() => {
       if (!isCurrentLoad()) return;
 
-      perfLog("card", "page ready", {
-        totalMs: Math.round(performance.now() - cardSessionStartRef.current),
-        parallelMs: Math.round(performance.now() - parallelStart),
-        entryCount,
-        participantCount,
-      });
       setEntriesRefreshing(false);
     });
 
@@ -388,13 +346,8 @@ export default function CardDetailPage() {
       setActingKind("approve");
       setEntryActionError(null);
       try {
-        await measurePerfEntryAction(
-          { action: "approve", surface: "card", cardId, entryId },
-          {
-            callable: () => approveEntry(user, cardId, entryId),
-            refresh: (result) => refreshAfterEntryMutation(result),
-          }
-        );
+        const result = await approveEntry(user, cardId, entryId);
+        await refreshAfterEntryMutation(result);
       } catch (err) {
         setEntryActionError(
           err instanceof Error ? err.message : "לא הצלחנו לאשר את הרשומה"
@@ -414,13 +367,8 @@ export default function CardDetailPage() {
       setActingKind("reject");
       setEntryActionError(null);
       try {
-        await measurePerfEntryAction(
-          { action: "reject", surface: "card", cardId, entryId },
-          {
-            callable: () => rejectEntry(user, cardId, entryId),
-            refresh: (result) => refreshAfterEntryMutation(result),
-          }
-        );
+        const result = await rejectEntry(user, cardId, entryId);
+        await refreshAfterEntryMutation(result);
       } catch (err) {
         setEntryActionError(
           err instanceof Error ? err.message : "לא הצלחנו לדחות את הרשומה"
@@ -451,13 +399,8 @@ export default function CardDetailPage() {
       setActingKind("cancel");
       setEntryActionError(null);
       try {
-        await measurePerfEntryAction(
-          { action: "cancel", surface: "card", cardId, entryId },
-          {
-            callable: () => cancelEntry(user, cardId, entryId),
-            refresh: (result) => refreshAfterEntryMutation(result),
-          }
-        );
+        const result = await cancelEntry(user, cardId, entryId);
+        await refreshAfterEntryMutation(result);
       } catch (err) {
         setEntryActionError(
           err instanceof Error ? err.message : "לא הצלחנו לבטל את הרשומה"

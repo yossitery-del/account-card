@@ -2,7 +2,6 @@
 
 import { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
-import { withPerf } from "@/lib/dev/perfLog";
 import {
   callRejectEntryFunction,
   type DashboardQuickActionCallableResult,
@@ -39,9 +38,7 @@ export async function rejectEntry(
   }
 
   try {
-    return await withPerf("rejectEntry", () =>
-      callRejectEntryFunction({ cardId, entryId })
-    );
+    return await callRejectEntryFunction({ cardId, entryId });
   } catch (err) {
     throw new Error(mapRejectEntryError(err));
   }

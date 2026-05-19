@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { measurePerfEntryAction } from "@/lib/dev/perfDiagnostics";
 import {
   createEntry,
   validateEntryAmount,
@@ -91,16 +90,14 @@ export function AddEntrySheet({
 
       setPending(true);
       try {
-        await measurePerfEntryAction(
-          { action: "create", surface: "card", cardId },
-          {
-            callable: () =>
-              createEntry(user, cardId, selectedIntent, amountResult.amount, title),
-            refresh: async (result) => {
-              await onCreated(result);
-            },
-          }
+        const result = await createEntry(
+          user,
+          cardId,
+          selectedIntent,
+          amountResult.amount,
+          title
         );
+        await onCreated(result);
         handleClose();
       } catch (err) {
         console.error("createEntry failed:", err);

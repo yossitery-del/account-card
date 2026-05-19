@@ -2,7 +2,6 @@
 
 import { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
-import { withPerf } from "@/lib/dev/perfLog";
 import {
   callCancelEntryFunction,
   type EntryMutationCallableResult,
@@ -39,9 +38,7 @@ export async function cancelEntry(
   }
 
   try {
-    return await withPerf("cancelEntry", () =>
-      callCancelEntryFunction({ cardId, entryId })
-    );
+    return await callCancelEntryFunction({ cardId, entryId });
   } catch (err) {
     throw new Error(mapCancelEntryError(err));
   }

@@ -1,7 +1,6 @@
 "use client";
 
 import { doc, getDoc } from "firebase/firestore";
-import { withPerf, withPerfStep } from "@/lib/dev/perfLog";
 import { getFirestoreDb } from "@/lib/firebase/client";
 import { parseViewerPendingSummary } from "@/lib/cards/parseViewerPendingSummary";
 import type { AccountCard, AccountCardSummary } from "@/types/card";
@@ -53,22 +52,16 @@ export async function getAccountCardSummaryForViewer(
   cardId: string,
   viewerUid: string
 ): Promise<AccountCardSummary | null> {
-  return withPerf("getAccountCardSummaryForViewer", async () => {
-    const db = getFirestoreDb();
-    const cardSnap = await withPerfStep(
-      "getAccountCardSummaryForViewer",
-      "cardDoc",
-      () => getDoc(doc(db, "accountCards", cardId))
-    );
+  const db = getFirestoreDb();
+  const cardSnap = await getDoc(doc(db, "accountCards", cardId));
 
-    if (!cardSnap.exists()) {
-      return null;
-    }
+  if (!cardSnap.exists()) {
+    return null;
+  }
 
-    return buildAccountCardSummary(
-      cardSnap.id,
-      cardSnap.data() as AccountCard,
-      viewerUid
-    );
-  });
+  return buildAccountCardSummary(
+    cardSnap.id,
+    cardSnap.data() as AccountCard,
+    viewerUid
+  );
 }

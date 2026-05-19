@@ -1,7 +1,6 @@
 "use client";
 
 import { FirebaseError } from "firebase/app";
-import { withPerf } from "@/lib/dev/perfLog";
 import { callCreateInvitationFunction } from "@/lib/firebase/functions";
 import type { CreateInvitationResult } from "@/types/invitation";
 
@@ -54,12 +53,10 @@ export async function createInvitation(
   const trimmedName = options.invitedName?.trim();
 
   try {
-    return await withPerf("createInvitation", () =>
-      callCreateInvitationFunction({
-        cardId,
-        ...(trimmedName ? { invitedName: trimmedName } : {}),
-      })
-    );
+    return await callCreateInvitationFunction({
+      cardId,
+      ...(trimmedName ? { invitedName: trimmedName } : {}),
+    });
   } catch (err) {
     throw new Error(mapInvitationError(err));
   }

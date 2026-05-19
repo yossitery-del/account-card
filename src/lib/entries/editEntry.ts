@@ -2,7 +2,6 @@
 
 import { FirebaseError } from "firebase/app";
 import type { User } from "firebase/auth";
-import { withPerf } from "@/lib/dev/perfLog";
 import {
   callEditEntryFunction,
   type EntryMutationCallableResult,
@@ -54,15 +53,13 @@ export async function editEntry(
   }
 
   try {
-    return await withPerf("editEntry", () =>
-      callEditEntryFunction({
-        cardId,
-        entryId,
-        intent,
-        amount,
-        title: title.trim(),
-      })
-    );
+    return await callEditEntryFunction({
+      cardId,
+      entryId,
+      intent,
+      amount,
+      title: title.trim(),
+    });
   } catch (err) {
     throw new Error(mapEditEntryError(err));
   }

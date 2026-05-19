@@ -1,6 +1,5 @@
 "use client";
 
-import { withPerf } from "@/lib/dev/perfLog";
 import { callGetInvitationPreviewFunction } from "@/lib/firebase/functions";
 import type { InvitationPreviewResult } from "@/types/invitation";
 
@@ -11,7 +10,5 @@ export async function getInvitationPreview(
   if (!trimmed) {
     return { status: "invalid" };
   }
-  return withPerf("getInvitationPreview", () =>
-    callGetInvitationPreviewFunction(trimmed)
-  );
+  return callGetInvitationPreviewFunction(trimmed);
 }
