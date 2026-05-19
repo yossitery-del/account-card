@@ -1,6 +1,12 @@
 /** נוסח מרכז פיקוד דשבורד — «כרטיס» / «כרטיס חשבון» */
 
-export function primaryStatusMessage(cardsWithPending: number): string {
+export function primaryStatusMessage(
+  cardsWithPending: number,
+  activeCardCount?: number
+): string {
+  if (activeCardCount === 0) {
+    return "מוכן לפתיחת כרטיס ראשון";
+  }
   if (cardsWithPending === 1) {
     return "כרטיס אחד ממתין לאישור";
   }

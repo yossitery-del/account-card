@@ -39,7 +39,10 @@ export function DashboardCommandCenter({ cards }: DashboardCommandCenterProps) {
 
   const stats = useMemo(() => computeDashboardStats(cards), [cards]);
 
-  const statusPrimary = primaryStatusMessage(stats.cardsWithPending);
+  const statusPrimary = primaryStatusMessage(
+    stats.cardsWithPending,
+    stats.activeCardCount
+  );
   const cardsMeta = activeCardsMeta(stats.activeCardCount);
   const dateTimeLine = formatLocalDateTimeLine(now);
   const hasAttention = stats.cardsWithPending > 0;
