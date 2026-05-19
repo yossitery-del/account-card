@@ -2,7 +2,13 @@
 
 /** מדידות ביצועים — development בלבד, ללא מזהים רגישים */
 
-const isDev = process.env.NODE_ENV === "development";
+import {
+  isPerfLoggingEnabled,
+  logStructuredPerfReport,
+  resetStructuredPerfReport,
+} from "@/lib/dev/perfDiagnostics";
+
+const isDev = isPerfLoggingEnabled();
 
 const callCounts = new Map<string, number>();
 const lastTimingsMs = new Map<string, number>();
@@ -10,6 +16,10 @@ const lastTimingsMs = new Map<string, number>();
 /** Callable — cold start אפשרי בקריאה ראשונה איטית */
 const CALLABLE_LABELS = new Set([
   "createEntry",
+  "approveEntry",
+  "rejectEntry",
+  "cancelEntry",
+  "editEntry",
   "createInvitation",
   "acceptInvitation",
   "getInvitationPreview",
@@ -68,12 +78,14 @@ export function getPerfLastTimings(): Record<string, number> {
 
 export function logPerfReport(): void {
   if (!isDev) return;
+  logStructuredPerfReport();
+
   const rows = [...lastTimingsMs.entries()].sort((a, b) => b[1] - a[1]);
   if (rows.length === 0) {
-    console.info("[perf] report: no timings yet");
+    console.info("[perf] raw report: no timings yet");
     return;
   }
-  console.info("[perf] report (last run per label, ms):");
+  console.info("[perf] raw report (last run per label, ms):");
   for (const [label, ms] of rows) {
     console.info(`  ${label}: ${ms}ms (calls: ${callCounts.get(label) ?? 0})`);
   }
@@ -82,9 +94,10 @@ export function logPerfReport(): void {
 /** איפוס מונים — אופציונלי לדיבוג ידני מהקונסול */
 export function resetPerfCounts(): void {
   if (!isDev) return;
+  resetStructuredPerfReport();
   callCounts.clear();
   lastTimingsMs.clear();
-  console.info("[perf] call counts reset");
+  console.info("[perf] call counts and structured samples reset");
 }
 
 if (isDev && typeof window !== "undefined") {

@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useCallback, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { CardList } from "@/components/cards/CardList";
 import { DashboardCommandCenter } from "@/components/cards/DashboardHeader";
@@ -16,6 +16,7 @@ import {
   refreshDashboardCardInPlace,
   replaceDashboardCard,
 } from "@/lib/cards/refreshDashboardCard";
+import { perfLog } from "@/lib/dev/perfDiagnostics";
 import { listUserCards } from "@/lib/cards/listUserCards";
 import { useDashboardRevalidate } from "@/lib/cards/useDashboardRevalidate";
 import type { AccountCardSummary } from "@/types/card";
@@ -29,6 +30,11 @@ export default function AppPage() {
   const [error, setError] = useState<string | null>(null);
 
   const authUid = user?.uid ?? null;
+  const dashboardSessionStartRef = useRef(0);
+
+  useEffect(() => {
+    dashboardSessionStartRef.current = performance.now();
+  }, [authUid]);
 
   const reloadAllCards = useCallback(async (): Promise<AccountCardSummary[]> => {
     if (!authUid) {
@@ -114,16 +120,34 @@ export default function AppPage() {
       setError(null);
     });
 
+    perfLog("dashboard", "auth ready", {
+      ms: Math.round(performance.now() - dashboardSessionStartRef.current),
+    });
+
     void (async () => {
+      const listStart = performance.now();
       try {
         const list = await listUserCards(authUid);
+        const listUserCardsMs = Math.round(performance.now() - listStart);
         if (!cancelled) {
           setCards(list);
           setError(null);
           setLoading(false);
+          perfLog("dashboard", "listUserCards", {
+            ms: listUserCardsMs,
+            cardCount: list.length,
+          });
+          perfLog("dashboard", "dashboard ready", {
+            totalMs: Math.round(performance.now() - dashboardSessionStartRef.current),
+            listUserCardsMs,
+            cardCount: list.length,
+          });
         }
       } catch (err) {
         console.error("listUserCards failed:", err);
+        perfLog("dashboard", "listUserCards failed", {
+          ms: Math.round(performance.now() - listStart),
+        });
         if (!cancelled) {
           setError("לא הצלחנו לטעון את הכרטיסים. נסה שוב.");
           setCards([]);
