@@ -14,9 +14,14 @@ import { CardShareStatus } from "@/components/cards/CardShareStatus";
 import { AddEntrySheet } from "@/components/entries/AddEntrySheet";
 import { EditEntrySheet } from "@/components/entries/EditEntrySheet";
 import { EntryList } from "@/components/entries/EntryList";
+import { LoadingVault } from "@/components/ui/LoadingVault";
 import { ProcessingOverlay } from "@/components/ui/ProcessingOverlay";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { cardsCopy } from "@/lib/cards/cardsCopy";
+import {
+  readDashboardCardSnapshot,
+  updateDashboardCardsSnapshot,
+} from "@/lib/cards/dashboardSessionState";
 import {
   formatOfficialBalanceAmount,
   formatOfficialBalanceHint,
@@ -30,6 +35,10 @@ import {
   hasCardBalancePatch,
   patchCardBalances,
 } from "@/lib/cards/patchCardBalances";
+import { replaceDashboardCard } from "@/lib/cards/refreshDashboardCard";
+import {
+  parseViewerPendingAwaitingMyApproval,
+} from "@/lib/cards/parseViewerPendingSummary";
 import type { EntryMutationCallableResult } from "@/lib/firebase/functions";
 import { approveEntry } from "@/lib/entries/approveEntry";
 import { cancelEntry } from "@/lib/entries/cancelEntry";
@@ -51,9 +60,11 @@ export default function CardDetailPage() {
   const [participantNames, setParticipantNames] = useState<Map<string, string>>(
     new Map()
   );
-  const [pageReady, setPageReady] = useState(false);
+  const [contextLoading, setContextLoading] = useState(true);
+  const [entriesLoaded, setEntriesLoaded] = useState(false);
   const [entriesRefreshing, setEntriesRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [entriesError, setEntriesError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<AccountCardEntryWithId | null>(
@@ -72,6 +83,7 @@ export default function CardDetailPage() {
   const loadGenerationRef = useRef(0);
   const contextRef = useRef<CardPageContext | null>(null);
   const cardSessionStartRef = useRef(0);
+  const authUid = user?.uid ?? null;
 
   useEffect(() => {
     cardSessionStartRef.current = performance.now();
@@ -100,12 +112,33 @@ export default function CardDetailPage() {
       ]);
       if (ctx) {
         setContext(ctx);
+        updateDashboardCardsSnapshot(user.uid, (cachedCards) => {
+          const existing = cachedCards.find((card) => card.id === cardId);
+          if (!existing) {
+            return cachedCards;
+          }
+          return replaceDashboardCard(cachedCards, {
+            ...existing,
+            title: ctx.card.title,
+            balancePerspectiveUid: ctx.card.balancePerspectiveUid,
+            officialBalance: ctx.card.officialBalance,
+            pendingBalanceImpact: ctx.card.pendingBalanceImpact,
+            updatedAt: ctx.card.updatedAt,
+          });
+        });
         setError(null);
+      } else {
+        setContext(null);
+        setError("לא נמצא כרטיס או שאין לך גישה אליו.");
       }
       applyEntriesResult(entriesResult);
+      setEntriesLoaded(true);
+      setEntriesError(null);
     } catch (err) {
       console.error("refreshCardData failed:", err);
+      setEntriesError("לא הצלחנו לטעון את הרשומות. נסה שוב.");
     } finally {
+      setContextLoading(false);
       setEntriesRefreshing(false);
     }
   }, [user, cardId, applyEntriesResult]);
@@ -131,10 +164,30 @@ export default function CardDetailPage() {
         setContext((prev) =>
           prev ? patchCardBalances(prev, mutation) : prev
         );
+        updateDashboardCardsSnapshot(user.uid, (cachedCards) => {
+          const existing = cachedCards.find((card) => card.id === cardId);
+          if (!existing) {
+            return cachedCards;
+          }
+
+          const pendingAwaitingMyApproval =
+            parseViewerPendingAwaitingMyApproval(
+              mutation.pendingAwaitingMyApproval
+            ) ?? existing.pendingAwaitingMyApproval;
+
+          return replaceDashboardCard(cachedCards, {
+            ...existing,
+            officialBalance: mutation.officialBalance,
+            pendingBalanceImpact: mutation.pendingBalanceImpact,
+            updatedAt: mutation.updatedAt,
+            pendingAwaitingMyApproval,
+          });
+        });
         setError(null);
 
         const entriesResult = await listEntries(cardId);
         applyEntriesResult(entriesResult);
+        setEntriesError(null);
       } catch (err) {
         console.error("refreshAfterEntryMutation failed:", err);
         await refreshCardData();
@@ -149,8 +202,14 @@ export default function CardDetailPage() {
     if (authLoading) return;
     if (!user || !cardId) {
       startTransition(() => {
-        setPageReady(false);
+        setContext(null);
+        setEntries([]);
+        setParticipantNames(new Map());
+        setContextLoading(false);
+        setEntriesLoaded(false);
         setEntriesRefreshing(false);
+        setError(null);
+        setEntriesError(null);
       });
       return;
     }
@@ -159,79 +218,103 @@ export default function CardDetailPage() {
     let cancelled = false;
 
     startTransition(() => {
-      setPageReady(false);
+      setContext(null);
+      setEntries([]);
+      setParticipantNames(new Map());
+      setContextLoading(true);
+      setEntriesLoaded(false);
+      setEntriesRefreshing(true);
       setError(null);
+      setEntriesError(null);
     });
 
     perfLog("card", "auth ready", {
       ms: Math.round(performance.now() - cardSessionStartRef.current),
     });
 
-    void (async () => {
-      const parallelStart = performance.now();
-      let contextMs = 0;
-      let entriesMs = 0;
-      let entryCount = 0;
-      let participantCount = 0;
+    const parallelStart = performance.now();
+    let contextMs = 0;
+    let entriesMs = 0;
+    let entryCount = 0;
+    let participantCount = 0;
 
+    const isCurrentLoad = () =>
+      !cancelled && loadId === loadGenerationRef.current;
+
+    const contextPromise = (async () => {
+      const stepStart = performance.now();
       try {
-        const [ctx, entriesResult] = await Promise.all([
-          (async () => {
-            const stepStart = performance.now();
-            const result = await getCardPageContext(cardId, user.uid);
-            contextMs = Math.round(performance.now() - stepStart);
-            return result;
-          })(),
-          (async () => {
-            const stepStart = performance.now();
-            const result = await listEntries(cardId);
-            entriesMs = Math.round(performance.now() - stepStart);
-            entryCount = result.entries.length;
-            participantCount = result.participantNames.size;
-            return result;
-          })(),
-        ]);
-
-        if (cancelled || loadId !== loadGenerationRef.current) return;
+        const ctx = await getCardPageContext(cardId, user.uid);
+        contextMs = Math.round(performance.now() - stepStart);
+        if (!isCurrentLoad()) return;
 
         perfLog("card", "getCardPageContext", { ms: contextMs });
-        perfLog("card", "listEntries", {
-          ms: entriesMs,
-          entryCount,
-          participantCount,
-        });
 
         if (!ctx) {
           setError("לא נמצא כרטיס או שאין לך גישה אליו.");
           setContext(null);
           setEntries([]);
           setParticipantNames(new Map());
-        } else {
-          setContext(ctx);
-          applyEntriesResult(entriesResult);
+          return;
         }
 
-        perfLog("card", "page ready", {
-          totalMs: Math.round(performance.now() - cardSessionStartRef.current),
-          parallelMs: Math.round(performance.now() - parallelStart),
-          entryCount,
-          participantCount,
-        });
+        setContext(ctx);
+        setError(null);
       } catch (err) {
-        console.error("card page load failed:", err);
-        perfLog("card", "page load failed", {
-          ms: Math.round(performance.now() - parallelStart),
-        });
-        if (!cancelled && loadId === loadGenerationRef.current) {
+        console.error("getCardPageContext failed:", err);
+        contextMs = Math.round(performance.now() - stepStart);
+        if (isCurrentLoad()) {
+          perfLog("card", "getCardPageContext failed", { ms: contextMs });
           setError("לא הצלחנו לטעון את הכרטיס. נסה שוב.");
         }
       } finally {
-        if (!cancelled && loadId === loadGenerationRef.current) {
-          setPageReady(true);
-          setEntriesRefreshing(false);
+        if (isCurrentLoad()) {
+          setContextLoading(false);
         }
       }
     })();
+
+    const entriesPromise = (async () => {
+      const stepStart = performance.now();
+      try {
+        const entriesResult = await listEntries(cardId);
+        entriesMs = Math.round(performance.now() - stepStart);
+        entryCount = entriesResult.entries.length;
+        participantCount = entriesResult.participantNames.size;
+        if (!isCurrentLoad()) return;
+
+        perfLog("card", "listEntries", {
+          ms: entriesMs,
+          entryCount,
+          participantCount,
+        });
+        applyEntriesResult(entriesResult);
+        setEntriesError(null);
+      } catch (err) {
+        console.error("listEntries failed:", err);
+        entriesMs = Math.round(performance.now() - stepStart);
+        if (isCurrentLoad()) {
+          perfLog("card", "listEntries failed", { ms: entriesMs });
+          setEntriesError("לא הצלחנו לטעון את הרשומות. נסה שוב.");
+        }
+      } finally {
+        if (isCurrentLoad()) {
+          setEntriesLoaded(true);
+        }
+      }
+    })();
+
+    void Promise.allSettled([contextPromise, entriesPromise]).then(() => {
+      if (!isCurrentLoad()) return;
+
+      perfLog("card", "page ready", {
+        totalMs: Math.round(performance.now() - cardSessionStartRef.current),
+        parallelMs: Math.round(performance.now() - parallelStart),
+        entryCount,
+        participantCount,
+      });
+      setEntriesRefreshing(false);
+    });
 
     return () => {
       cancelled = true;
@@ -239,7 +322,7 @@ export default function CardDetailPage() {
   }, [user, authLoading, cardId, applyEntriesResult]);
 
   useEffect(() => {
-    if (!pageReady || entriesRefreshing || !user) return;
+    if (!entriesLoaded || entriesRefreshing || !user) return;
     if (didScrollToPendingRef.current) return;
 
     const needsAttention = entries.some(
@@ -261,9 +344,12 @@ export default function CardDetailPage() {
     return () => {
       window.clearTimeout(attentionTimer);
     };
-  }, [entries, pageReady, entriesRefreshing, user]);
+  }, [entries, entriesLoaded, entriesRefreshing, user]);
 
   const card = context?.card ?? null;
+  const cachedCard = authUid && cardId
+    ? readDashboardCardSnapshot(authUid, cardId)
+    : null;
   const officialAmount =
     card && user
       ? formatOfficialBalanceAmount(
@@ -384,24 +470,24 @@ export default function CardDetailPage() {
     [user, cardId, actingEntryId, refreshAfterEntryMutation]
   );
 
-  const pageLoading = authLoading || !pageReady;
-  const entriesLoading = !pageReady || entriesRefreshing;
+  const pageLoading = authLoading || contextLoading;
+  const entriesLoading = !entriesLoaded || (entriesRefreshing && entries.length === 0);
   const mutationProcessing = actingEntryId !== null || sheetMutationPending;
-  const overlayVisible = pageLoading || mutationProcessing;
-  const overlayLabel = mutationProcessing
-    ? loadingLabels.updating
-    : loadingLabels.card;
+  const overlayVisible = mutationProcessing;
+  const overlayLabel = loadingLabels.updating;
 
   return (
     <main className="min-h-dvh px-6 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto w-full max-w-lg">
         <AppShellHeader
-          title={card?.title ?? "כרטיס"}
+          title={card?.title ?? cachedCard?.title ?? "כרטיס"}
           backHref="/app"
           backLabel="חזרה לכרטיסים"
         />
 
-        {pageLoading ? null : error ? (
+        {pageLoading && !context ? (
+          <LoadingVault inline label={loadingLabels.card} />
+        ) : error ? (
           <p
             className="text-center text-sm text-[var(--color-muted-rose)]"
             role="alert"
@@ -478,7 +564,8 @@ export default function CardDetailPage() {
               balancePerspectiveUid={card.balancePerspectiveUid}
               participantNames={participantNames}
               loading={entriesLoading && entries.length === 0}
-              refreshing={entriesRefreshing && !mutationProcessing}
+              refreshing={entriesRefreshing && entriesLoaded && !mutationProcessing}
+              error={entriesError}
               highlightPending={highlightEntries}
               actingEntryId={actingEntryId}
               actingKind={actingKind}

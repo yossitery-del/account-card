@@ -1,7 +1,6 @@
 "use client";
 
 import { forwardRef } from "react";
-import { PremiumLoader } from "@/components/ui/PremiumLoader";
 import { entriesCopy } from "@/lib/entries/entriesCopy";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
 import type { AccountCardEntryWithId } from "@/types/entry";
@@ -14,6 +13,7 @@ type EntryListProps = {
   participantNames: Map<string, string>;
   loading?: boolean;
   refreshing?: boolean;
+  error?: string | null;
   highlightPending?: boolean;
   actingEntryId?: string | null;
   actingKind?: "approve" | "reject" | "cancel" | null;
@@ -31,6 +31,7 @@ export const EntryList = forwardRef<HTMLElement, EntryListProps>(function EntryL
     participantNames,
     loading = false,
     refreshing = false,
+    error = null,
     highlightPending = false,
     actingEntryId = null,
     actingKind = null,
@@ -62,10 +63,15 @@ export const EntryList = forwardRef<HTMLElement, EntryListProps>(function EntryL
         ) : null}
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-10">
-          <PremiumLoader label={loadingLabels.entries} />
-        </div>
+      {error ? (
+        <p
+          className="py-8 text-center text-sm text-[var(--color-muted-rose)]"
+          role="alert"
+        >
+          {error}
+        </p>
+      ) : loading ? (
+        <EntryListSkeleton />
       ) : entries.length === 0 ? (
         <div className="py-8 text-center">
           <p className="text-sm text-[var(--color-pearl)]">{entriesCopy.emptyTitle}</p>
@@ -98,3 +104,21 @@ export const EntryList = forwardRef<HTMLElement, EntryListProps>(function EntryL
     </section>
   );
 });
+
+function EntryListSkeleton() {
+  return (
+    <div className="space-y-3 py-2" role="status" aria-label={loadingLabels.entries}>
+      <span className="sr-only">{loadingLabels.entries}</span>
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div
+          key={index}
+          className="rounded-xl border border-[var(--color-glass-border)]/35 p-4"
+        >
+          <div className="h-4 w-2/3 rounded-full bg-[var(--color-pearl)]/10" />
+          <div className="mt-3 h-3 w-5/6 rounded-full bg-[var(--color-mist)]/10" />
+          <div className="mt-3 h-3 w-1/3 rounded-full bg-[var(--color-champagne)]/10" />
+        </div>
+      ))}
+    </div>
+  );
+}

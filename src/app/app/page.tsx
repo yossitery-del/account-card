@@ -19,6 +19,11 @@ import {
 import { perfLog } from "@/lib/dev/perfDiagnostics";
 import { listUserCards } from "@/lib/cards/listUserCards";
 import { useDashboardRevalidate } from "@/lib/cards/useDashboardRevalidate";
+import {
+  clearDashboardCardsSnapshot,
+  readDashboardCardsSnapshot,
+  writeDashboardCardsSnapshot,
+} from "@/lib/cards/dashboardSessionState";
 import type { AccountCardSummary } from "@/types/card";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -36,6 +41,16 @@ export default function AppPage() {
     dashboardSessionStartRef.current = performance.now();
   }, [authUid]);
 
+  const applyDashboardCards = useCallback(
+    (list: AccountCardSummary[]) => {
+      setCards(list);
+      if (authUid) {
+        writeDashboardCardsSnapshot(authUid, list);
+      }
+    },
+    [authUid]
+  );
+
   const reloadAllCards = useCallback(async (): Promise<AccountCardSummary[]> => {
     if (!authUid) {
       return [];
@@ -44,9 +59,9 @@ export default function AppPage() {
   }, [authUid]);
 
   const handleRevalidatedCards = useCallback((list: AccountCardSummary[]) => {
-    setCards(list);
+    applyDashboardCards(list);
     setError(null);
-  }, []);
+  }, [applyDashboardCards]);
 
   useDashboardRevalidate({
     viewerUid: authUid,
@@ -75,7 +90,9 @@ export default function AppPage() {
             return prev;
           }
           didPatch = true;
-          return replaceDashboardCard(prev, patched);
+          const next = replaceDashboardCard(prev, patched);
+          writeDashboardCardsSnapshot(authUid, next);
+          return next;
         });
         if (didPatch) {
           return;
@@ -89,13 +106,17 @@ export default function AppPage() {
       });
 
       if (result.kind === "full") {
-        setCards(result.cards);
+        applyDashboardCards(result.cards);
         return;
       }
 
-      setCards((prev) => replaceDashboardCard(prev, result.updated));
+      setCards((prev) => {
+        const next = replaceDashboardCard(prev, result.updated);
+        writeDashboardCardsSnapshot(authUid, next);
+        return next;
+      });
     },
-    [authUid, reloadAllCards]
+    [authUid, applyDashboardCards, reloadAllCards]
   );
 
   useEffect(() => {
@@ -109,14 +130,21 @@ export default function AppPage() {
         setLoading(false);
         setError(null);
       });
+      clearDashboardCardsSnapshot();
       return;
     }
 
     let cancelled = false;
+    const cachedCards = readDashboardCardsSnapshot(authUid);
+    const hasCachedCards = cachedCards !== null;
 
     startTransition(() => {
-      setCards([]);
-      setLoading(true);
+      if (cachedCards) {
+        setCards(cachedCards);
+      } else {
+        setCards([]);
+      }
+      setLoading(!hasCachedCards);
       setError(null);
     });
 
@@ -130,7 +158,7 @@ export default function AppPage() {
         const list = await listUserCards(authUid);
         const listUserCardsMs = Math.round(performance.now() - listStart);
         if (!cancelled) {
-          setCards(list);
+          applyDashboardCards(list);
           setError(null);
           setLoading(false);
           perfLog("dashboard", "listUserCards", {
@@ -149,8 +177,10 @@ export default function AppPage() {
           ms: Math.round(performance.now() - listStart),
         });
         if (!cancelled) {
-          setError("לא הצלחנו לטעון את הכרטיסים. נסה שוב.");
-          setCards([]);
+          if (!hasCachedCards) {
+            setError("לא הצלחנו לטעון את הכרטיסים. נסה שוב.");
+            setCards([]);
+          }
           setLoading(false);
         }
       }
@@ -159,7 +189,7 @@ export default function AppPage() {
     return () => {
       cancelled = true;
     };
-  }, [authUid, authLoading]);
+  }, [authUid, authLoading, applyDashboardCards]);
 
   return (
     <main className="min-h-dvh px-6 py-11 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
@@ -168,7 +198,7 @@ export default function AppPage() {
 
         <DevAuthIdentity />
 
-        {authLoading || loading ? (
+        {authLoading || (loading && cards.length === 0) ? (
           <LoadingVault inline label={loadingLabels.cards} />
         ) : error ? (
           <p
