@@ -1,17 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="????? ?????">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Account Card">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0e0f0d"/>
-      <stop offset="100%" stop-color="#171815"/>
+      <stop offset="0%" stop-color="#0b0c0a"/>
+      <stop offset="100%" stop-color="#191a15"/>
     </linearGradient>
     <radialGradient id="glow" cx="52%" cy="36%" r="44%">
-      <stop offset="0%" stop-color="#c2b092" stop-opacity="0.18"/>
+      <stop offset="0%" stop-color="#c2b092" stop-opacity="0.28"/>
       <stop offset="100%" stop-color="#c2b092" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
   <rect width="512" height="512" rx="112" fill="url(#glow)"/>
-  <rect x="132" y="96" width="248" height="320" rx="50" fill="rgba(194,176,146,0.075)" stroke="#c2b092" stroke-width="14"/>
-  <path d="M188 198h136M188 260h94" stroke="#ada9a0" stroke-width="16" stroke-linecap="round"/>
-  <path d="M304 322l36 36 68-78" stroke="#b0a882" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="104" y="76" width="304" height="360" rx="58" fill="#242520" stroke="#d8c6a4" stroke-width="22"/>
+  <path d="M172 196h168M172 266h118" stroke="#f1e4cc" stroke-width="20" stroke-linecap="round"/>
+  <path d="M296 342l44 44 82-94" stroke="#c8bb8d" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

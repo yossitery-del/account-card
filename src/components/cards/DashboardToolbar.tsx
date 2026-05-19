@@ -10,6 +10,7 @@ export function DashboardToolbar() {
       <header className="mb-7 flex items-center justify-between gap-2">
         <BrandMarkButton />
         <div className="flex shrink-0 items-center gap-2">
+          <InstallAppButton compact />
           <Link
             href="/app/cards/new"
             className="min-h-10 rounded-full border border-[var(--color-vault-border-metallic)] px-3 py-2 text-sm text-[var(--color-mist)] transition-colors hover:border-[var(--color-champagne)]/32 hover:text-[var(--color-pearl)] sm:px-4"
@@ -19,7 +20,6 @@ export function DashboardToolbar() {
           <SignOutButton variant="subtle" />
         </div>
       </header>
-      <InstallAppButton className="mb-6" />
     </>
   );
 }

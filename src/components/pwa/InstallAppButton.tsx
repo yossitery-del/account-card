@@ -20,6 +20,7 @@ type NavigatorWithStandalone = Navigator & {
 
 type InstallAppButtonProps = {
   className?: string;
+  compact?: boolean;
 };
 
 function isStandaloneDisplay(): boolean {
@@ -47,7 +48,10 @@ function isIosSafari(): boolean {
   return isIos && isSafari && !isOtherIosBrowser;
 }
 
-export function InstallAppButton({ className = "" }: InstallAppButtonProps) {
+export function InstallAppButton({
+  className = "",
+  compact = false,
+}: InstallAppButtonProps) {
   const [mode, setMode] = useState<InstallMode>("hidden");
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -57,6 +61,15 @@ export function InstallAppButton({ className = "" }: InstallAppButtonProps) {
     if (isStandaloneDisplay()) {
       return;
     }
+
+    const standaloneQuery = window.matchMedia("(display-mode: standalone)");
+    const hideIfStandalone = () => {
+      if (isStandaloneDisplay()) {
+        setInstallPrompt(null);
+        setIosGuideOpen(false);
+        setMode("hidden");
+      }
+    };
 
     if (isIosSafari()) {
       queueMicrotask(() => setMode("ios"));
@@ -76,6 +89,9 @@ export function InstallAppButton({ className = "" }: InstallAppButtonProps) {
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", handleInstalled);
+    window.addEventListener("focus", hideIfStandalone);
+    window.addEventListener("pageshow", hideIfStandalone);
+    standaloneQuery.addEventListener("change", hideIfStandalone);
 
     return () => {
       window.removeEventListener(
@@ -83,6 +99,9 @@ export function InstallAppButton({ className = "" }: InstallAppButtonProps) {
         handleBeforeInstallPrompt
       );
       window.removeEventListener("appinstalled", handleInstalled);
+      window.removeEventListener("focus", hideIfStandalone);
+      window.removeEventListener("pageshow", hideIfStandalone);
+      standaloneQuery.removeEventListener("change", hideIfStandalone);
     };
   }, []);
 
@@ -114,14 +133,26 @@ export function InstallAppButton({ className = "" }: InstallAppButtonProps) {
       <div className={className}>
         <button
           type="button"
-          className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--color-vault-border-metallic)] bg-[rgba(194,176,146,0.045)] px-4 py-2 text-sm font-medium text-[var(--color-mist)] shadow-[inset_0_1px_0_rgba(194,176,146,0.08)] transition-colors hover:border-[var(--color-champagne)]/35 hover:text-[var(--color-pearl)]"
+          className={
+            compact
+              ? "inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-vault-border-metallic)] bg-[rgba(194,176,146,0.045)] text-[var(--color-mist)] shadow-[inset_0_1px_0_rgba(194,176,146,0.08)] transition-colors hover:border-[var(--color-champagne)]/35 hover:text-[var(--color-pearl)]"
+              : "inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--color-vault-border-metallic)] bg-[rgba(194,176,146,0.045)] px-4 py-2 text-sm font-medium text-[var(--color-mist)] shadow-[inset_0_1px_0_rgba(194,176,146,0.08)] transition-colors hover:border-[var(--color-champagne)]/35 hover:text-[var(--color-pearl)]"
+          }
+          aria-label={mode === "ios" ? "הוסף למסך הבית" : "התקן כאפליקציה"}
+          title={mode === "ios" ? "הוסף למסך הבית" : "התקן כאפליקציה"}
           onClick={() => void handleInstallClick()}
         >
-          <span
-            className="h-1.5 w-1.5 rounded-full bg-[var(--color-vault-gold-green)]"
-            aria-hidden
-          />
-          {mode === "ios" ? "הוסף למסך הבית" : "התקן כאפליקציה"}
+          {compact ? (
+            <InstallIcon />
+          ) : (
+            <>
+              <span
+                className="h-1.5 w-1.5 rounded-full bg-[var(--color-vault-gold-green)]"
+                aria-hidden
+              />
+              {mode === "ios" ? "הוסף למסך הבית" : "התקן כאפליקציה"}
+            </>
+          )}
         </button>
       </div>
       <IosInstallGuideModal
@@ -129,6 +160,31 @@ export function InstallAppButton({ className = "" }: InstallAppButtonProps) {
         onClose={() => setIosGuideOpen(false)}
       />
     </>
+  );
+}
+
+function InstallIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className="h-[18px] w-[18px]"
+      aria-hidden
+    >
+      <path
+        d="M12 4v9m0 0 3.5-3.5M12 13 8.5 9.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.5 14.5v2.2c0 1.2 1 2.3 2.3 2.3h8.4c1.3 0 2.3-1 2.3-2.3v-2.2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
