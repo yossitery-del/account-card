@@ -4,7 +4,8 @@ import {
   assertCanCancelEntryFromSnapshots,
 } from "../lib/assertCanCancelEntry";
 import {parseEntryDelta} from "../lib/assertCanApproveEntry";
-import {db, FUNCTIONS_REGION} from "../lib/admin";
+import {db} from "../lib/admin";
+import {WARMED_ENTRY_CALLABLE_OPTIONS} from "../lib/callableOptions";
 import {parseEntryActionPayload} from "../lib/entryActionPayload";
 import {requireAuthUid} from "../lib/auth";
 import {
@@ -29,7 +30,7 @@ export type CancelEntryOutput = Awaited<
  * מבטל רשומה pending על ידי יוצר — מסיר השפעה מ-pendingBalanceImpact בלבד.
  */
 export const cancelEntry = onCall(
-  {region: FUNCTIONS_REGION},
+  WARMED_ENTRY_CALLABLE_OPTIONS,
   async (request): Promise<CancelEntryOutput> => {
     let perfCardId = "";
     let perfEntryId = "";

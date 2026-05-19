@@ -4,8 +4,9 @@ import {type EntryData} from "../lib/assertCanApproveEntry";
 import {
   assertCanEditEntryFromSnapshots,
 } from "../lib/assertCanEditEntry";
-import {db, FUNCTIONS_REGION} from "../lib/admin";
+import {db} from "../lib/admin";
 import {requireAuthUid} from "../lib/auth";
+import {WARMED_ENTRY_CALLABLE_OPTIONS} from "../lib/callableOptions";
 import {
   balanceDelta,
   effectForType,
@@ -61,7 +62,7 @@ function resolveStoredIntent(
  * עורך רשומה pending על ידי יוצר — מעדכן pendingBalanceImpact בלבד.
  */
 export const editEntry = onCall(
-  {region: FUNCTIONS_REGION},
+  WARMED_ENTRY_CALLABLE_OPTIONS,
   async (request): Promise<EditEntryOutput> => {
     let perfCardId = "";
     let perfEntryId = "";
