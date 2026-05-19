@@ -1,4 +1,4 @@
-import { APP_NAME } from "@/lib/constants/app";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { LoginRedirect } from "@/components/auth/LoginRedirect";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { LoginAuthMessage } from "@/components/auth/LoginAuthMessage";
@@ -8,15 +8,10 @@ export default function LoginPage() {
     <LoginRedirect>
       <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-16">
         <div className="glass-card w-full max-w-md rounded-2xl p-10 text-center">
-          <p className="mb-2 text-sm tracking-wide text-[var(--color-champagne)]">
+          <p className="mb-5 text-sm tracking-wide text-[var(--color-champagne)]">
             פנקס בתוך כספת
           </p>
-          <h1 className="mb-3 text-3xl font-medium text-[var(--color-pearl)]">
-            {APP_NAME}
-          </h1>
-          <p className="mb-8 text-base text-[var(--color-mist)]">
-            פנקס משותף — תיעוד והסכמה
-          </p>
+          <BrandMark align="center" size="hero" className="mb-8" />
 
           <LoginAuthMessage />
           <GoogleSignInButton />
