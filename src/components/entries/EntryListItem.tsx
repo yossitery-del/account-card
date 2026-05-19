@@ -56,6 +56,7 @@ export function EntryListItem({
   const attribution = isOwn
     ? entriesCopy.addedByYou
     : entriesCopy.addedByOther(creatorDisplayName);
+  const title = entry.title.trim();
 
   const displayDate = getEntryDisplayDate(entry);
   const dateLine = displayDate ? formatEntryLedgerDate(displayDate) : null;
@@ -82,9 +83,11 @@ export function EntryListItem({
     <article className="py-3.5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h4 className="text-[15px] font-medium leading-snug text-[var(--color-pearl)]">
-            {entry.title}
-          </h4>
+          {title ? (
+            <h4 className="text-[15px] font-medium leading-snug text-[var(--color-pearl)]">
+              {title}
+            </h4>
+          ) : null}
           <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs leading-relaxed text-[var(--color-mist)]">
             <span>{intentLabel}</span>
             <span className="text-[var(--color-mist)]/50" aria-hidden>

@@ -62,7 +62,7 @@ function toEntryPreview(row: PendingEntryRow): DashboardPendingEntryPreview | nu
   if (row.status !== "pending") {
     return null;
   }
-  if (typeof row.title !== "string" || !row.title.trim()) {
+  if (typeof row.title !== "string") {
     return null;
   }
   if (

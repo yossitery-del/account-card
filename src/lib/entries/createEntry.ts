@@ -8,15 +8,11 @@ import {
 } from "@/lib/firebase/functions";
 import type { EntryIntent } from "@/types/entry";
 
-export const ENTRY_TITLE_MIN = 1;
 export const ENTRY_TITLE_MAX = 200;
 export const ENTRY_AMOUNT_MAX = 999_999_999;
 
 export function validateEntryTitle(title: string): string | null {
   const trimmed = title.trim();
-  if (trimmed.length < ENTRY_TITLE_MIN) {
-    return "נא להזין פירוט קצר";
-  }
   if (trimmed.length > ENTRY_TITLE_MAX) {
     return `הפירוט עד ${ENTRY_TITLE_MAX} תווים`;
   }

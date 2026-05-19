@@ -20,7 +20,7 @@ function parseEntryPreview(raw: unknown): DashboardPendingEntryPreview | null {
   if (typeof row.entryId !== "string" || !row.entryId) {
     return null;
   }
-  if (typeof row.title !== "string" || !row.title.trim()) {
+  if (typeof row.title !== "string") {
     return null;
   }
   if (

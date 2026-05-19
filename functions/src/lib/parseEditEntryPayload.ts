@@ -2,7 +2,6 @@ import {HttpsError} from "firebase-functions/v2/https";
 import {parseEntryIntent} from "./entryIntent";
 import {parseCardId, parseEntryId} from "./validators";
 
-const TITLE_MIN = 1;
 const TITLE_MAX = 200;
 const AMOUNT_MAX = 999_999_999;
 
@@ -57,7 +56,7 @@ function parseTitle(raw: unknown): string {
     throw new HttpsError("invalid-argument", "פירוט קצר חייב להיות מחרוזת");
   }
   const title = raw.trim();
-  if (title.length < TITLE_MIN || title.length > TITLE_MAX) {
+  if (title.length > TITLE_MAX) {
     throw new HttpsError("invalid-argument", "פירוט קצר לא תקין");
   }
   return title;
