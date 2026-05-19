@@ -1,11 +1,50 @@
 import {HttpsError} from "firebase-functions/v2/https";
 import {db} from "./admin";
 import {type EntryData} from "./assertCanApproveEntry";
+import type {ActiveParticipantRow} from "./recomputeDashboardPendingSummary";
 
-type ParticipantData = {
+type CardCancelData = {
   status?: string;
-  permissions?: {canAddEntry?: boolean};
 };
+
+/**
+ * אימות הרשאות ביטול רשומה מנתונים שכבר נקראו בטרנזקציה — ללא קריאות Firestore נוספות.
+ */
+export function assertCanCancelEntryFromSnapshots(params: {
+  cardExists: boolean;
+  card: CardCancelData | undefined;
+  entryExists: boolean;
+  entry: EntryData;
+  uid: string;
+  activeParticipants: ActiveParticipantRow[];
+}): void {
+  if (!params.cardExists) {
+    throw new HttpsError("not-found", "הכרטיס לא נמצא");
+  }
+
+  if (params.card?.status !== "active") {
+    throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
+  }
+
+  const participant = params.activeParticipants.find((p) => p.id === params.uid);
+  if (!participant) {
+    throw new HttpsError("permission-denied", "אין לך גישה לכרטיס זה");
+  }
+
+  if (participant.status !== "active") {
+    throw new HttpsError("permission-denied", "אין לך גישה לכרטיס זה");
+  }
+
+  if (participant.permissions?.canAddEntry !== true) {
+    throw new HttpsError("permission-denied", "אין לך הרשאה לפעולה זו");
+  }
+
+  if (!params.entryExists) {
+    throw new HttpsError("not-found", "הרשומה לא נמצאה");
+  }
+
+  assertEntryCancellable(params.entry, params.uid);
+}
 
 /**
  * בודק שהמשתמש (יוצר הרשומה) רשאי לבטל רשומה pending.
@@ -17,37 +56,25 @@ export async function assertCanCancelEntry(
 ): Promise<void> {
   const cardRef = db.collection("accountCards").doc(cardId);
   const cardSnap = await cardRef.get();
-
-  if (!cardSnap.exists) {
-    throw new HttpsError("not-found", "הכרטיס לא נמצא");
-  }
-
-  const card = cardSnap.data();
-  if (card?.status !== "active") {
-    throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
-  }
-
   const participantSnap = await cardRef.collection("participants").doc(uid).get();
-  if (!participantSnap.exists) {
-    throw new HttpsError("permission-denied", "אין לך גישה לכרטיס זה");
-  }
-
-  const participant = participantSnap.data() as ParticipantData;
-  if (participant.status !== "active") {
-    throw new HttpsError("permission-denied", "אין לך גישה לכרטיס זה");
-  }
-
-  if (participant.permissions?.canAddEntry !== true) {
-    throw new HttpsError("permission-denied", "אין לך הרשאה לפעולה זו");
-  }
-
   const entrySnap = await cardRef.collection("entries").doc(entryId).get();
-  if (!entrySnap.exists) {
-    throw new HttpsError("not-found", "הרשומה לא נמצאה");
+
+  const activeParticipants: ActiveParticipantRow[] = [];
+  if (participantSnap.exists) {
+    activeParticipants.push({
+      id: uid,
+      ...(participantSnap.data() as Omit<ActiveParticipantRow, "id">),
+    });
   }
 
-  const entry = entrySnap.data() as EntryData;
-  assertEntryCancellable(entry, uid);
+  assertCanCancelEntryFromSnapshots({
+    cardExists: cardSnap.exists,
+    card: cardSnap.data(),
+    entryExists: entrySnap.exists,
+    entry: (entrySnap.data() ?? {}) as EntryData,
+    uid,
+    activeParticipants,
+  });
 }
 
 export function assertEntryCancellable(entry: EntryData, uid: string): void {

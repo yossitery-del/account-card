@@ -1,8 +1,7 @@
 import {FieldValue, Transaction} from "firebase-admin/firestore";
-import {HttpsError, onCall} from "firebase-functions/v2/https";
+import {onCall} from "firebase-functions/v2/https";
 import {
-  assertCanCancelEntry,
-  assertEntryCancellable,
+  assertCanCancelEntryFromSnapshots,
 } from "../lib/assertCanCancelEntry";
 import {parseEntryDelta} from "../lib/assertCanApproveEntry";
 import {db, FUNCTIONS_REGION} from "../lib/admin";
@@ -48,10 +47,6 @@ export const cancelEntry = onCall(
       perf = createEntryResolvePerf("cancelEntry", cardId, entryId);
       perf.logStage("authValidation", Date.now() - authStart);
 
-      const preTxStart = Date.now();
-      await assertCanCancelEntry(cardId, entryId, uid);
-      perf.logStage("preTransactionAssert", Date.now() - preTxStart);
-
       const cardRef = db.collection("accountCards").doc(cardId);
       const entryRef = cardRef.collection("entries").doc(entryId);
       const auditRef = cardRef.collection("auditEvents").doc();
@@ -93,21 +88,15 @@ export const cancelEntry = onCall(
         perf.logStage("transaction.readsParallel", Date.now() - parallelReadsStart);
 
         const validationStart = Date.now();
-        if (!cardSnap.exists) {
-          throw new HttpsError("not-found", "הכרטיס לא נמצא");
-        }
-
-        if (!entrySnap.exists) {
-          throw new HttpsError("not-found", "הרשומה לא נמצאה");
-        }
-
-        const card = cardSnap.data();
-        if (card?.status !== "active") {
-          throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
-        }
-
         const entry = entrySnap.data() ?? {};
-        assertEntryCancellable(entry, uid);
+        assertCanCancelEntryFromSnapshots({
+          cardExists: cardSnap.exists,
+          card: cardSnap.data(),
+          entryExists: entrySnap.exists,
+          entry,
+          uid,
+          activeParticipants: summaryInputs.activeParticipants,
+        });
         perf.logStage("transaction.permissionValidation", Date.now() - validationStart);
 
         const delta = parseEntryDelta(entry);

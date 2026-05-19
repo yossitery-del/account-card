@@ -1,35 +1,36 @@
 import {HttpsError} from "firebase-functions/v2/https";
 import {type EntryData} from "./assertCanApproveEntry";
 import {db} from "./admin";
+import type {ActiveParticipantRow} from "./recomputeDashboardPendingSummary";
 
-type ParticipantData = {
+type CardEditData = {
   status?: string;
-  permissions?: {canAddEntry?: boolean};
 };
 
-export async function assertCanEditEntry(
-  cardId: string,
-  entryId: string,
-  uid: string
-): Promise<void> {
-  const cardRef = db.collection("accountCards").doc(cardId);
-  const cardSnap = await cardRef.get();
-
-  if (!cardSnap.exists) {
+/**
+ * אימות הרשאות עריכת רשומה מנתונים שכבר נקראו בטרנזקציה — ללא קריאות Firestore נוספות.
+ */
+export function assertCanEditEntryFromSnapshots(params: {
+  cardExists: boolean;
+  card: CardEditData | undefined;
+  entryExists: boolean;
+  entry: EntryData;
+  uid: string;
+  activeParticipants: ActiveParticipantRow[];
+}): void {
+  if (!params.cardExists) {
     throw new HttpsError("not-found", "הכרטיס לא נמצא");
   }
 
-  const card = cardSnap.data();
-  if (card?.status !== "active") {
+  if (params.card?.status !== "active") {
     throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
   }
 
-  const participantSnap = await cardRef.collection("participants").doc(uid).get();
-  if (!participantSnap.exists) {
+  const participant = params.activeParticipants.find((p) => p.id === params.uid);
+  if (!participant) {
     throw new HttpsError("permission-denied", "אין לך גישה לכרטיס זה");
   }
 
-  const participant = participantSnap.data() as ParticipantData;
   if (participant.status !== "active") {
     throw new HttpsError("permission-denied", "אין לך גישה לכרטיס זה");
   }
@@ -38,13 +39,39 @@ export async function assertCanEditEntry(
     throw new HttpsError("permission-denied", "אין לך הרשאה לפעולה זו");
   }
 
-  const entrySnap = await cardRef.collection("entries").doc(entryId).get();
-  if (!entrySnap.exists) {
+  if (!params.entryExists) {
     throw new HttpsError("not-found", "הרשומה לא נמצאה");
   }
 
-  const entry = entrySnap.data() as EntryData;
-  assertEntryEditable(entry, uid);
+  assertEntryEditable(params.entry, params.uid);
+}
+
+export async function assertCanEditEntry(
+  cardId: string,
+  entryId: string,
+  uid: string
+): Promise<void> {
+  const cardRef = db.collection("accountCards").doc(cardId);
+  const cardSnap = await cardRef.get();
+  const participantSnap = await cardRef.collection("participants").doc(uid).get();
+  const entrySnap = await cardRef.collection("entries").doc(entryId).get();
+
+  const activeParticipants: ActiveParticipantRow[] = [];
+  if (participantSnap.exists) {
+    activeParticipants.push({
+      id: uid,
+      ...(participantSnap.data() as Omit<ActiveParticipantRow, "id">),
+    });
+  }
+
+  assertCanEditEntryFromSnapshots({
+    cardExists: cardSnap.exists,
+    card: cardSnap.data(),
+    entryExists: entrySnap.exists,
+    entry: (entrySnap.data() ?? {}) as EntryData,
+    uid,
+    activeParticipants,
+  });
 }
 
 export function assertEntryEditable(entry: EntryData, uid: string): void {
