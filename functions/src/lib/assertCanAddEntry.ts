@@ -1,33 +1,33 @@
 import {HttpsError} from "firebase-functions/v2/https";
 import {db} from "./admin";
+import type {ActiveParticipantRow} from "./recomputeDashboardPendingSummary";
 
-type ParticipantData = {
+type CardAddEntryData = {
   status?: string;
-  permissions?: {canAddEntry?: boolean};
 };
 
 /**
- * בודק שהמשתמש participant פעיל עם canAddEntry על כרטיס פעיל.
+ * אימות הרשאות הוספת רשומה מנתונים שכבר נקראו בטרנזקציה — ללא קריאות Firestore נוספות.
  */
-export async function assertCanAddEntry(cardId: string, uid: string): Promise<void> {
-  const cardRef = db.collection("accountCards").doc(cardId);
-  const cardSnap = await cardRef.get();
-
-  if (!cardSnap.exists) {
+export function assertCanAddEntryFromSnapshots(params: {
+  cardExists: boolean;
+  card: CardAddEntryData | undefined;
+  uid: string;
+  activeParticipants: ActiveParticipantRow[];
+}): void {
+  if (!params.cardExists) {
     throw new HttpsError("not-found", "הכרטיס לא נמצא");
   }
 
-  const card = cardSnap.data();
-  if (card?.status !== "active") {
+  if (params.card?.status !== "active") {
     throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
   }
 
-  const participantSnap = await cardRef.collection("participants").doc(uid).get();
-  if (!participantSnap.exists) {
+  const participant = params.activeParticipants.find((p) => p.id === params.uid);
+  if (!participant) {
     throw new HttpsError("permission-denied", "אין לך גישה לכרטיס זה");
   }
 
-  const participant = participantSnap.data() as ParticipantData;
   if (participant.status !== "active") {
     throw new HttpsError("permission-denied", "אין לך גישה לכרטיס זה");
   }
@@ -35,4 +35,29 @@ export async function assertCanAddEntry(cardId: string, uid: string): Promise<vo
   if (participant.permissions?.canAddEntry !== true) {
     throw new HttpsError("permission-denied", "אין לך הרשאה להוסיף רשומה");
   }
+}
+
+/**
+ * בודק שהמשתמש participant פעיל עם canAddEntry על כרטיס פעיל.
+ * קריאות Firestore מחוץ לטרנזקציה — העדף assertCanAddEntryFromSnapshots בתוך transaction.
+ */
+export async function assertCanAddEntry(cardId: string, uid: string): Promise<void> {
+  const cardRef = db.collection("accountCards").doc(cardId);
+  const cardSnap = await cardRef.get();
+  const participantSnap = await cardRef.collection("participants").doc(uid).get();
+
+  const activeParticipants: ActiveParticipantRow[] = [];
+  if (participantSnap.exists) {
+    activeParticipants.push({
+      id: uid,
+      ...(participantSnap.data() as Omit<ActiveParticipantRow, "id">),
+    });
+  }
+
+  assertCanAddEntryFromSnapshots({
+    cardExists: cardSnap.exists,
+    card: cardSnap.data(),
+    uid,
+    activeParticipants,
+  });
 }

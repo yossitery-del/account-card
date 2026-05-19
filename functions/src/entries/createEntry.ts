@@ -2,7 +2,7 @@ import {FieldValue, Transaction} from "firebase-admin/firestore";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {db} from "../lib/admin";
 import {WARMED_ENTRY_CALLABLE_OPTIONS} from "../lib/callableOptions";
-import {assertCanAddEntry} from "../lib/assertCanAddEntry";
+import {assertCanAddEntryFromSnapshots} from "../lib/assertCanAddEntry";
 import {requireAuthUid} from "../lib/auth";
 import {createEntryResolvePerf} from "../lib/entryResolveCallablePerf";
 import {
@@ -119,10 +119,6 @@ export const createEntry = onCall(
       perf = createEntryResolvePerf("createEntry", cardId, "");
       perf.logStage("authValidation", Date.now() - authStart);
 
-      const preTxStart = Date.now();
-      await assertCanAddEntry(cardId, uid);
-      perf.logStage("preTransactionAssert", Date.now() - preTxStart);
-
       const cardRef = db.collection("accountCards").doc(cardId);
       const entryRef = cardRef.collection("entries").doc();
       const entryId = entryRef.id;
@@ -158,15 +154,16 @@ export const createEntry = onCall(
         ]);
         perf.logStage("transaction.readsParallel", Date.now() - parallelReadsStart);
 
-        if (!cardSnap.exists) {
-          throw new HttpsError("not-found", "הכרטיס לא נמצא");
-        }
+        const validationStart = Date.now();
+        assertCanAddEntryFromSnapshots({
+          cardExists: cardSnap.exists,
+          card: cardSnap.data(),
+          uid,
+          activeParticipants: summaryInputs.activeParticipants,
+        });
+        perf.logStage("transaction.addEntryValidation", Date.now() - validationStart);
 
         const card = cardSnap.data();
-        if (card?.status !== "active") {
-          throw new HttpsError("failed-precondition", "הכרטיס אינו פעיל");
-        }
-
         const balancePerspectiveUid =
           typeof card?.balancePerspectiveUid === "string" ?
             card.balancePerspectiveUid :

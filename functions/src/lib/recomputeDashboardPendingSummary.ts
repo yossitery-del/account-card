@@ -41,7 +41,7 @@ export type PendingEntryRow = {
 export type ActiveParticipantRow = {
   id: string;
   status?: string;
-  permissions?: {canApprove?: boolean};
+  permissions?: {canApprove?: boolean; canAddEntry?: boolean};
 };
 
 export type DashboardPendingSummaryInputs = {
