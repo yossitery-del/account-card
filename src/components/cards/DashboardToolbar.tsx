@@ -7,7 +7,7 @@ import { InstallAppButton } from "@/components/pwa/InstallAppButton";
 export function DashboardToolbar() {
   return (
     <>
-      <header className="mb-7 flex items-center justify-between gap-2">
+      <header className="mb-8 flex items-center justify-between gap-2 sm:mb-7">
         <BrandMarkButton />
         <div className="flex shrink-0 items-center gap-2">
           <InstallAppButton compact />

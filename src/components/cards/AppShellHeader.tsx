@@ -20,7 +20,7 @@ export function AppShellHeader({
 
   if (isNested) {
     return (
-      <header className="relative mb-8">
+      <header className="relative mb-8 pt-[max(0px,calc(env(safe-area-inset-top,0px)-1.25rem))] sm:pt-0">
         <div className="mb-5 flex items-center justify-between gap-3">
           <BrandMarkButton />
           <SignOutButton variant="subtle" />
@@ -44,7 +44,7 @@ export function AppShellHeader({
   }
 
   return (
-    <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <header className="mb-8 flex flex-col gap-4 pt-[max(0px,calc(env(safe-area-inset-top,0px)-1.25rem))] sm:flex-row sm:items-center sm:justify-between sm:pt-0">
       <div>
         <BrandMarkButton className="mb-5" />
         <h1 className="text-2xl font-medium text-[var(--color-pearl)]">{title}</h1>

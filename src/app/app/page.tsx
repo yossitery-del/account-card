@@ -167,7 +167,7 @@ export default function AppPage() {
   }, [authUid, authLoading, applyDashboardCards]);
 
   return (
-    <main className="min-h-dvh px-6 py-11 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
+    <main className="min-h-dvh px-6 pt-[max(2.75rem,calc(env(safe-area-inset-top,0px)+1.25rem))] pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto w-full max-w-lg">
         <DashboardToolbar />
 
