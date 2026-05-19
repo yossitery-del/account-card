@@ -11,7 +11,7 @@ import { logJoinPreviewDev } from "@/lib/invitations/joinPreviewDevLog";
 import { getFirebaseApp } from "./client";
 
 /** חייב להתאים ל-functions/src/lib/admin.ts */
-export const FIREBASE_FUNCTIONS_REGION = "europe-west1";
+export const FIREBASE_FUNCTIONS_REGION = "us-central1";
 
 const FUNCTIONS_EMULATOR_HOST = "127.0.0.1";
 const FUNCTIONS_EMULATOR_PORT = 5001;

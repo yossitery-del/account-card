@@ -3,7 +3,7 @@ import {getAuth} from "firebase-admin/auth";
 import {getFirestore} from "firebase-admin/firestore";
 
 /** Region נעול לכל Functions — חייב להתאים ל-client. */
-export const FUNCTIONS_REGION = "europe-west1";
+export const FUNCTIONS_REGION = "us-central1";
 
 if (getApps().length === 0) {
   initializeApp();
