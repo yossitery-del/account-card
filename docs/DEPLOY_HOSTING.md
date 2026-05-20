@@ -69,9 +69,9 @@ Repo + `firebase.json` (Firestore, Functions) מספיקים ל-preflight מקו
 |--------|-----|
 | `APP_BASE_URL` | `https://account-card-prod.vercel.app` (production מאומת ב-smoke) — או custom domain עתידי |
 
-משמש לבניית `inviteLink` ב-`createInvitation`. ברירת מחדל בקוד: `http://localhost:3000` — **חייב** לעדכן לפני שיתוף הזמנות בפרודקשן.
+משמש לבניית `inviteLink` ב-`createInvitation`. ב-**emulator** ברירת המחדל של הפרמטר היא `http://localhost:3000`. ב-**Functions deployed**, אם הפרמטר חסר או עדיין localhost, הקוד משתמש ב-fallback `https://account-card-prod.vercel.app`, כותב **warn** ללוג Cloud, וממליץ להגדיר `APP_BASE_URL` כדי למנוע סטייה מול דומיין אחר.
 
-הגדרה: Firebase Console → Functions → Parameters (או `functions/.env` לפיתוח מקומי בלבד).
+הגדרה מומלצת: קובץ `functions/.env.<PROJECT_ID>` לפני deploy (ראה [Configure your environment](https://firebase.google.com/docs/functions/config-env?gen=2nd)) או ערך שנשמר אחרי prompt ב-`firebase deploy --only functions`. לפיתוח מקומי: `functions/.env` בלבד.
 
 ### Firebase Auth — Authorized domains
 
