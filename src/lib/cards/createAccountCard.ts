@@ -10,10 +10,10 @@ export const CARD_TITLE_MAX = 200;
 export function validateCardTitle(title: string): string | null {
   const trimmed = title.trim();
   if (trimmed.length < CARD_TITLE_MIN) {
-    return "נא להזין שם לכרטיס";
+    return "נא למלא למי הכרטיס";
   }
   if (trimmed.length > CARD_TITLE_MAX) {
-    return `שם הכרטיס עד ${CARD_TITLE_MAX} תווים`;
+    return `עד ${CARD_TITLE_MAX} תווים`;
   }
   return null;
 }
@@ -24,7 +24,7 @@ function mapCreateCardError(err: unknown): string {
       return "נדרשת התחברות";
     }
     if (err.code === "functions/invalid-argument") {
-      return "שם הכרטיס לא תקין";
+      return "הערך לא תקין";
     }
   }
   return "לא הצלחנו ליצור את הכרטיס. נסה שוב.";

@@ -18,14 +18,14 @@ import {
   JOIN_ERROR_MESSAGES,
   JOIN_LOGGED_IN_SECURE_LABEL,
   JOIN_PREVIEW_ACCEPTING,
-  JOIN_PREVIEW_BODY_DETAIL,
-  JOIN_PREVIEW_BODY_LEAD,
   JOIN_PREVIEW_CTA,
   JOIN_PREVIEW_GOOGLE_CTA,
   JOIN_PREVIEW_GOOGLE_NOTE,
+  JOIN_PREVIEW_MAIN_HEADLINE,
   JOIN_PREVIEW_SIGN_IN_LABEL,
+  JOIN_PREVIEW_VALUE_PROSE,
+  joinInviterSecondaryLine,
   joinLoggedInAs,
-  joinPreviewTitle,
 } from "@/lib/invitations/joinPreviewCopy";
 import type { InvitationPreviewResult } from "@/types/invitation";
 
@@ -141,22 +141,28 @@ export function JoinPreviewScreen({
     );
   }
 
-  const title = joinPreviewTitle(preview.inviterDisplayName);
+  const inviterNote = joinInviterSecondaryLine(preview.inviterDisplayName);
 
   const joinBusy = acceptPending;
 
   return (
     <>
       <div className="glass-card rounded-2xl p-8">
-      <h1 className="mb-4 text-2xl font-medium leading-snug text-[var(--color-pearl)]">
-        {title}
+      <h1
+        className={`text-2xl font-medium leading-snug text-[var(--color-pearl)] ${
+          inviterNote ? "mb-2" : "mb-4"
+        }`}
+      >
+        {JOIN_PREVIEW_MAIN_HEADLINE}
       </h1>
-      <div className="mb-8 space-y-2">
-        <p className="text-sm leading-relaxed text-[var(--color-mist)]">
-          {JOIN_PREVIEW_BODY_LEAD}
+      {inviterNote ? (
+        <p className="mb-5 text-xs leading-relaxed text-[var(--color-mist)]/75">
+          {inviterNote}
         </p>
-        <p className="text-xs leading-relaxed text-[var(--color-mist)]/70">
-          {JOIN_PREVIEW_BODY_DETAIL}
+      ) : null}
+      <div className="mb-8">
+        <p className="text-sm leading-relaxed text-[var(--color-mist)]">
+          {JOIN_PREVIEW_VALUE_PROSE}
         </p>
       </div>
       {user ? (

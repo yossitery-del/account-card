@@ -51,7 +51,7 @@ export function CreateCardForm() {
     <>
       <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-8">
       <label className="mb-2 block text-sm text-[var(--color-mist)]">
-        שם הכרטיס
+        מול מי הכרטיס?
       </label>
       <input
         type="text"
@@ -60,9 +60,12 @@ export function CreateCardForm() {
         disabled={pending}
         maxLength={200}
         autoFocus
-        className="mb-4 w-full rounded-xl border border-[var(--color-glass-border)] bg-[var(--color-glass-surface)] px-4 py-3 text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
-        placeholder="למשל: פנקס עם סתיו"
+        className="mb-2 w-full rounded-xl border border-[var(--color-glass-border)] bg-[var(--color-glass-surface)] px-4 py-3 text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
+        placeholder="לדוגמה: שמעון כהן, חברת אלפא, ספק קבוע"
       />
+      <p className="mb-4 text-xs leading-relaxed text-[var(--color-mist)]">
+        זה השם שיופיע אצלך בדשבורד.
+      </p>
       <p className="mb-6 text-xs text-[var(--color-mist)]">מטבע: שקל (₪)</p>
       {error ? (
         <p className="mb-4 text-sm text-[var(--color-muted-rose)]" role="alert">

@@ -1,10 +1,10 @@
 /** נוסח מאושר — Join Preview (Stage 2B-3) */
 
-export const JOIN_PREVIEW_BODY_LEAD =
-  "מקום פרטי ומסודר לראות ולעדכן בו את מצב החשבון ביניכם.";
+/** כותרת ראשית — ערך המוצר, לא זהות השולח */
+export const JOIN_PREVIEW_MAIN_HEADLINE = "כרטיס חשבון משותף";
 
-export const JOIN_PREVIEW_BODY_DETAIL =
-  "ברור, נוח, וללא בלגן בין הודעות וצילומי מסך.";
+export const JOIN_PREVIEW_VALUE_PROSE =
+  "מקום מסודר לתיעוד חיובים והחזרים בין שני צדדים. כל פעולה נשמרת, וכל אישור מתועד.";
 
 export const JOIN_PREVIEW_SIGN_IN_LABEL = "כניסה אישית מאובטחת";
 
@@ -23,11 +23,15 @@ export function joinLoggedInAs(displayName: string): string {
   return `מחובר כ־${displayName}`;
 }
 
-export function joinPreviewTitle(inviterDisplayName?: string): string {
-  if (inviterDisplayName?.trim()) {
-    return `${inviterDisplayName.trim()} רוצה לשתף איתך כרטיס חשבון`;
+/** שורה משנית — זהות השולח, רק אם ידועה */
+export function joinInviterSecondaryLine(
+  inviterDisplayName?: string
+): string | null {
+  const name = inviterDisplayName?.trim();
+  if (!name) {
+    return null;
   }
-  return "רוצים לשתף איתך כרטיס חשבון";
+  return `נשלח מ־${name}`;
 }
 
 export const JOIN_ERROR_MESSAGES: Record<
@@ -39,4 +43,3 @@ export const JOIN_ERROR_MESSAGES: Record<
   accepted: "ההזמנה כבר נוצלה.",
   revoked: "ההזמנה בוטלה.",
 };
-

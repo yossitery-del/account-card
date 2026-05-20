@@ -8,12 +8,12 @@ export function canUseNativeShare(): boolean {
 }
 
 export function buildInviteShareTitle(): string {
-  return "הזמנה לכרטיס חשבון משותף";
+  return "כרטיס חשבון משותף";
 }
 
 /** נוסח קצר ל-Web Share — הקישור מועבר ב-`url`. */
 export function buildInviteShareText(): string {
-  return `הצטרף לכרטיס החשבון המשותף שלנו — כל עדכון ממתין לאישור לפני שייכנס ליתרה.`;
+  return "פתחתי לנו כרטיס חשבון משותף — מקום מסודר לחיובים, החזרים ואישורים. הכניסה בקישור המצורף.";
 }
 
 export function buildInviteMessageForCopy(inviteLink: string): string {

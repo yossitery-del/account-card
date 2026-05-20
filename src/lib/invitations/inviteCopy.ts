@@ -2,11 +2,12 @@
 
 export const inviteCopy = {
   loading: "יוצר הזמנה…",
-  successTitle: "ההזמנה מוכנה לשיתוף",
-  successBody: "שלח לצד השני — הוא יוכל להצטרף בלחיצה מההודעה או מהקישור.",
-  readyHint: "קישור ההזמנה מוכן",
+  successTitle: "הקישור מוכן",
+  successBody:
+    "אפשר להדביק בהודעה בוואטסאפ או לשתף ישירות — הצד השני נכנס מהקישור.",
+  readyHint: "הקישור מוכן להעתקה או לשיתוף",
   expiryHint: "הקישור זמין למשך 30 יום.",
-  sharePrimary: "שיתוף הזמנה",
+  sharePrimary: "שיתוף",
   copyLink: "העתקת קישור",
   copyLinkDone: "הקישור הועתק",
   copyMessage: "העתקת הודעה",
