@@ -5,6 +5,7 @@ import {
   JOIN_OG_IMAGE_HEADLINE,
   JOIN_OG_IMAGE_SUBLINE,
   JOIN_OG_IMAGE_TAGLINE,
+  JOIN_OG_MOCK_APP_STATUS,
 } from "@/lib/invitations/joinOpenGraph";
 import {
   fallbackJoinOgFontConfig,
@@ -21,7 +22,7 @@ const OG_SUBLINE = forOgHebrew(JOIN_OG_IMAGE_SUBLINE);
 
 /** Fake in-app UI — static placeholders only (forOgHebrew for Satori). */
 const MOCK_APP_BRAND = forOgHebrew("כרטיס חשבון");
-const MOCK_APP_STATUS = forOgHebrew("אין פעולות לביצוע");
+const MOCK_APP_STATUS = forOgHebrew(JOIN_OG_MOCK_APP_STATUS);
 const MOCK_APP_CTA = forOgHebrew("הוסף פעולה");
 
 export const alt = JOIN_OG_IMAGE_ALT;
@@ -84,19 +85,19 @@ function PhoneMockup() {
     <div
       style={{
         display: "flex",
-        transform: "rotate(-9deg)",
-        marginTop: 24,
-        marginRight: -8,
+        transform: "rotate(-7deg)",
+        marginTop: 6,
+        marginLeft: -24,
       }}
     >
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          width: 296,
-          height: 568,
-          borderRadius: 38,
-          padding: 11,
+          width: 334,
+          height: 558,
+          borderRadius: 40,
+          padding: 12,
           background: `linear-gradient(145deg, ${COLORS.vaultGraphite} 0%, ${COLORS.vaultBlack} 100%)`,
           border: `2px solid rgba(194, 176, 146, 0.32)`,
           boxShadow:
@@ -108,7 +109,7 @@ function PhoneMockup() {
             display: "flex",
             flexDirection: "column",
             flex: 1,
-            borderRadius: 28,
+            borderRadius: 30,
             overflow: "hidden",
             background: COLORS.deepSurface,
             border: `1px solid ${COLORS.glassBorder}`,
@@ -117,14 +118,14 @@ function PhoneMockup() {
           <div
             style={{
               display: "flex",
-              height: 28,
+              height: 26,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
             <div
               style={{
-                width: 72,
+                width: 76,
                 height: 6,
                 borderRadius: 8,
                 background: "rgba(194, 176, 146, 0.12)",
@@ -137,13 +138,13 @@ function PhoneMockup() {
               flexDirection: "row",
               alignItems: "center",
               gap: 10,
-              padding: "14px 18px 10px",
+              padding: "12px 16px 8px",
             }}
           >
-            <BrandIcon size={26} />
+            <BrandIcon size={28} />
             <div
               style={{
-                fontSize: 17,
+                fontSize: 18,
                 fontWeight: 600,
                 color: COLORS.pearl,
                 letterSpacing: "-0.02em",
@@ -155,8 +156,8 @@ function PhoneMockup() {
           <div
             style={{
               display: "flex",
-              padding: "0 18px 14px",
-              fontSize: 12,
+              padding: "0 16px 12px",
+              fontSize: 13,
               fontWeight: 500,
               color: COLORS.mist,
             }}
@@ -167,8 +168,8 @@ function PhoneMockup() {
             style={{
               display: "flex",
               flexDirection: "column",
-              margin: "0 16px",
-              padding: 18,
+              margin: "0 14px",
+              padding: 16,
               borderRadius: 18,
               border: `1px solid ${COLORS.glassBorder}`,
               background: COLORS.glassSurface,
@@ -240,11 +241,10 @@ export default function JoinOpenGraphImage() {
             width: "100%",
             height: "100%",
             display: "flex",
-            flexDirection: "row",
             alignItems: "center",
-            justifyContent: "space-between",
-            padding: "48px 56px 48px 64px",
-            background: `linear-gradient(118deg, ${COLORS.vaultBlack} 0%, ${COLORS.deepSurface} 38%, ${COLORS.vaultGraphite} 72%, ${COLORS.vaultBlack} 100%)`,
+            justifyContent: "center",
+            padding: "28px 36px",
+            background: `linear-gradient(128deg, ${COLORS.vaultBlack} 0%, ${COLORS.deepSurface} 45%, ${COLORS.vaultGraphite} 100%)`,
             fontFamily: ogFont.family,
             direction: "ltr",
             position: "relative",
@@ -253,115 +253,104 @@ export default function JoinOpenGraphImage() {
           <div
             style={{
               position: "absolute",
-              top: -100,
-              left: -60,
-              width: 380,
-              height: 380,
+              top: "50%",
+              left: "58%",
+              width: 520,
+              height: 520,
+              marginTop: -260,
+              marginLeft: -260,
               borderRadius: "50%",
               background:
-                "radial-gradient(circle, rgba(194,176,146,0.11) 0%, transparent 68%)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              bottom: -140,
-              right: 120,
-              width: 480,
-              height: 480,
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(176,168,130,0.08) 0%, transparent 70%)",
+                "radial-gradient(circle, rgba(194,176,146,0.14) 0%, transparent 62%)",
             }}
           />
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
+              flexDirection: "row",
+              alignItems: "center",
               justifyContent: "center",
-              maxWidth: 520,
+              gap: 8,
               zIndex: 1,
             }}
           >
             <div
               style={{
                 display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 12,
-                marginBottom: 28,
+                flexDirection: "column",
+                justifyContent: "center",
+                width: 430,
+                flexShrink: 0,
+                paddingRight: 8,
               }}
             >
               <div
                 style={{
                   display: "flex",
+                  flexDirection: "row",
                   alignItems: "center",
-                  justifyContent: "center",
-                  width: 48,
-                  height: 48,
-                  borderRadius: 14,
-                  border: "1px solid rgba(194,176,146,0.28)",
-                  background: "rgba(201,184,150,0.07)",
+                  gap: 10,
+                  marginBottom: 18,
                 }}
               >
-                <BrandIcon size={26} />
+                <BrandIcon size={24} />
+                <div
+                  style={{
+                    width: 36,
+                    height: 2,
+                    background: `linear-gradient(90deg, ${COLORS.champagne}, transparent)`,
+                  }}
+                />
               </div>
               <div
                 style={{
-                  width: 48,
-                  height: 2,
-                  background: `linear-gradient(90deg, ${COLORS.champagne}, transparent)`,
+                  display: "flex",
+                  color: COLORS.pearl,
+                  fontSize: 44,
+                  fontWeight: 600,
+                  letterSpacing: "-0.035em",
+                  lineHeight: 1.1,
+                  marginBottom: 12,
                 }}
-              />
+              >
+                {OG_HEADLINE}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  color: COLORS.champagne,
+                  fontSize: 28,
+                  fontWeight: 600,
+                  letterSpacing: "-0.015em",
+                  lineHeight: 1.22,
+                  marginBottom: 10,
+                }}
+              >
+                {OG_TAGLINE}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  color: COLORS.mist,
+                  fontSize: 19,
+                  fontWeight: 500,
+                  letterSpacing: "0.02em",
+                  lineHeight: 1.3,
+                }}
+              >
+                {OG_SUBLINE}
+              </div>
             </div>
             <div
               style={{
                 display: "flex",
-                color: COLORS.pearl,
-                fontSize: 46,
-                fontWeight: 600,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.12,
-                marginBottom: 16,
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
               }}
             >
-              {OG_HEADLINE}
+              <PhoneMockup />
             </div>
-            <div
-              style={{
-                display: "flex",
-                color: COLORS.champagne,
-                fontSize: 30,
-                fontWeight: 500,
-                letterSpacing: "-0.01em",
-                lineHeight: 1.28,
-                marginBottom: 14,
-              }}
-            >
-              {OG_TAGLINE}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                color: COLORS.mist,
-                fontSize: 20,
-                fontWeight: 500,
-                letterSpacing: "0.03em",
-                lineHeight: 1.35,
-              }}
-            >
-              {OG_SUBLINE}
-            </div>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1,
-            }}
-          >
-            <PhoneMockup />
           </div>
         </div>
       ),
