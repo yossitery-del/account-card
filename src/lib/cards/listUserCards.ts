@@ -11,6 +11,7 @@ import {
 import { getFirestoreDb } from "@/lib/firebase/client";
 import {
   buildAccountCardSummary,
+  fetchActiveParticipantsForCardDisplayTitle,
   sortAccountCardSummaries,
 } from "@/lib/cards/accountCardSummary";
 import type { AccountCard, AccountCardSummary } from "@/types/card";
@@ -57,14 +58,22 @@ export async function listUserCards(uid: string): Promise<AccountCardSummary[]> 
     cardIds.map((cardId) => getDoc(doc(db, "accountCards", cardId)))
   );
 
+  const existingSnaps = cardSnaps.filter((snap) => snap.exists());
+  const participantsByCard = await Promise.all(
+    existingSnaps.map((snap) =>
+      fetchActiveParticipantsForCardDisplayTitle(snap.id)
+    )
+  );
+
   const summaries: AccountCardSummary[] = [];
-  for (const cardSnap of cardSnaps) {
-    if (!cardSnap.exists()) continue;
+  for (let i = 0; i < existingSnaps.length; i++) {
+    const cardSnap = existingSnaps[i]!;
     summaries.push(
       buildAccountCardSummary(
         cardSnap.id,
         cardSnap.data() as AccountCard,
-        uid
+        uid,
+        participantsByCard[i]
       )
     );
   }

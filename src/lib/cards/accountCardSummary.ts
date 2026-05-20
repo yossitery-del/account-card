@@ -1,9 +1,20 @@
 "use client";
 
-import { doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase/client";
 import { parseViewerPendingSummary } from "@/lib/cards/parseViewerPendingSummary";
-import type { AccountCard, AccountCardSummary } from "@/types/card";
+import {
+  resolveViewerCardDisplayTitle,
+  type ParticipantTitleInput,
+} from "@/lib/cards/resolveViewerCardDisplayTitle";
+import type { AccountCard, AccountCardSummary, CardParticipant } from "@/types/card";
 
 export function updatedAtToMillis(value: unknown): number {
   if (
@@ -25,14 +36,42 @@ export function sortAccountCardSummaries(
   );
 }
 
+export async function fetchActiveParticipantsForCardDisplayTitle(
+  cardId: string
+): Promise<ParticipantTitleInput[]> {
+  const db = getFirestoreDb();
+  const snap = await getDocs(
+    query(
+      collection(db, "accountCards", cardId, "participants"),
+      where("status", "==", "active")
+    )
+  );
+
+  return snap.docs.map((docSnap) => {
+    const participant = docSnap.data() as CardParticipant;
+    const uid =
+      typeof participant.uid === "string" && participant.uid.trim().length > 0
+        ? participant.uid
+        : docSnap.id;
+    return { uid, displayName: participant.displayName };
+  });
+}
+
 export function buildAccountCardSummary(
   cardId: string,
   data: AccountCard,
-  viewerUid: string
+  viewerUid: string,
+  activeParticipantsForTitle?: ParticipantTitleInput[]
 ): AccountCardSummary {
+  const displayTitle = resolveViewerCardDisplayTitle(
+    viewerUid,
+    data.title,
+    activeParticipantsForTitle ?? []
+  );
+
   return {
     id: cardId,
-    title: data.title,
+    title: displayTitle,
     balancePerspectiveUid: data.balancePerspectiveUid,
     officialBalance: data.officialBalance,
     pendingBalanceImpact: data.pendingBalanceImpact,
@@ -59,9 +98,14 @@ export async function getAccountCardSummaryForViewer(
     return null;
   }
 
+  const participants = await fetchActiveParticipantsForCardDisplayTitle(
+    cardSnap.id
+  );
+
   return buildAccountCardSummary(
     cardSnap.id,
     cardSnap.data() as AccountCard,
-    viewerUid
+    viewerUid,
+    participants
   );
 }

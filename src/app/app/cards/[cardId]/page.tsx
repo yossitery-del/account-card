@@ -110,7 +110,7 @@ export default function CardDetailPage() {
           }
           return replaceDashboardCard(cachedCards, {
             ...existing,
-            title: ctx.card.title,
+            title: ctx.viewerCardDisplayTitle,
             balancePerspectiveUid: ctx.card.balancePerspectiveUid,
             officialBalance: ctx.card.officialBalance,
             pendingBalanceImpact: ctx.card.pendingBalanceImpact,
@@ -308,6 +308,13 @@ export default function CardDetailPage() {
   const cachedCard = authUid && cardId
     ? readDashboardCardSnapshot(authUid, cardId)
     : null;
+
+  const viewerShellTitle =
+    context?.viewerCardDisplayTitle?.trim() ||
+    cachedCard?.title?.trim() ||
+    card?.title?.trim() ||
+    "כרטיס";
+
   const officialAmount =
     card && user
       ? formatOfficialBalanceAmount(
@@ -430,7 +437,7 @@ export default function CardDetailPage() {
     <main className="min-h-dvh px-6 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto w-full max-w-lg">
         <AppShellHeader
-          title={card?.title ?? cachedCard?.title ?? "כרטיס"}
+          title={viewerShellTitle}
           backHref="/app"
           backLabel="חזרה לכרטיסים"
         />
@@ -448,7 +455,7 @@ export default function CardDetailPage() {
           <>
             <div className="glass-card rounded-2xl p-8">
               <h2 className="mb-6 text-2xl font-medium text-[var(--color-pearl)]">
-                {card.title}
+                {viewerShellTitle}
               </h2>
 
               <div className="mb-6 grid grid-cols-2 gap-6">

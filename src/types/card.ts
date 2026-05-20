@@ -61,6 +61,7 @@ export type CardParticipant = {
 /** כרטיס עם מזהה — לדשבורד ומסך פרטים */
 export type AccountCardSummary = {
   id: string;
+  /** כותרת לתצוגה אצל הצופה — נגזרת בלקוח כשיש שני משתתפים פעילים; לא שדה Firestore */
   title: string;
   balancePerspectiveUid: string;
   officialBalance: number;

@@ -2,6 +2,7 @@
 
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase/client";
+import { resolveViewerCardDisplayTitle } from "@/lib/cards/resolveViewerCardDisplayTitle";
 import type { AccountCard, CardParticipant } from "@/types/card";
 import type { AccountCardWithId } from "@/lib/cards/getAccountCard";
 
@@ -10,6 +11,8 @@ export type CardPageContext = {
   currentParticipant: CardParticipant;
   activeParticipantsCount: number;
   otherParticipantName?: string;
+  /** כותרת לתצוגה אצל הצופה — נגזרת מ-displayName של הצד השני כשיש שני משתתפים פעילים */
+  viewerCardDisplayTitle: string;
 };
 
 /**
@@ -60,13 +63,30 @@ export async function getCardPageContext(
     })
     .find((name): name is string => name !== null);
 
+  const activeParticipantsForTitle = activeSnap.docs.map((docSnap) => {
+    const participant = docSnap.data() as CardParticipant;
+    const participantUid =
+      typeof participant.uid === "string" && participant.uid.trim().length > 0
+        ? participant.uid
+        : docSnap.id;
+    return { uid: participantUid, displayName: participant.displayName };
+  });
+
+  const cardData = cardSnap.data() as AccountCard;
+  const viewerCardDisplayTitle = resolveViewerCardDisplayTitle(
+    uid,
+    cardData.title,
+    activeParticipantsForTitle
+  );
+
   return {
     card: {
       id: cardSnap.id,
-      ...(cardSnap.data() as AccountCard),
+      ...cardData,
     },
     currentParticipant,
     activeParticipantsCount: activeSnap.size,
     otherParticipantName,
+    viewerCardDisplayTitle,
   };
 }
