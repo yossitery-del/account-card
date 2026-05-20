@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     // Firebase Functions build output (linted in functions/ separately)
     "functions/lib/**",
     "functions/node_modules/**",
+    "scripts/admin/**",
   ]),
 ]);
 

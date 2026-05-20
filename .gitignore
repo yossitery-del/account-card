@@ -50,6 +50,7 @@ firebase-debug.*.log
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+scripts/admin/dist
 
 # Firebase Functions build output
 functions/lib
