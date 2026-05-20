@@ -27,6 +27,7 @@
 | **2D-1 — Balance & Permission Function Tests** | **הבא מומלץ** — לא להתחיל בלי אישור מפורש |
 | **Production hosting** | **נעול** — UI **Vercel**; Backend **Firebase** `account-card-18e3a` — [DEPLOY_HOSTING.md](DEPLOY_HOSTING.md) |
 | 2C+ | PDF, encryption, תצוגות מתקדמות — עתידי |
+| **Post-pilot (UX)** | תווית אישית לכרטיס (`labelForMe`); שיתוף סיכום לצד שלישי בוואטסאפ (לא הזמנה) — **תיעוד בלבד**, [PROJECT_STATE.md — Post-pilot UX backlog](./PROJECT_STATE.md#post-pilot-ux-backlog) |
 
 **פעיל עכשיו:** **אין שלב מוצר פתוח** — מעגל pending (2C) סגור; 2D-0, 2D-P1A, 2D-P1B סגורים. שלב חדש (כולל 2D-1) רק באישור מפורש.  
 **Production UI:** Vercel — **לא** Firebase Hosting / App Hosting / VPS (MVP). Deploy production **לא** בוצע (תיעוד בלבד).  

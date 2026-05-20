@@ -13,7 +13,7 @@ export function primaryStatusMessage(
   if (cardsWithPending > 1) {
     return `${cardsWithPending} כרטיסים ממתינים לאישור`;
   }
-  return "הכול מסודר כרגע";
+  return "אין פעולות לביצוע";
 }
 
 export function activeCardsMeta(count: number): string {
