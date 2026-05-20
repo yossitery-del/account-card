@@ -6,6 +6,14 @@ import {
   JOIN_OG_IMAGE_SUBLINE,
   JOIN_OG_IMAGE_TAGLINE,
 } from "@/lib/invitations/joinOpenGraph";
+import {
+  fallbackJoinOgFontConfig,
+  resolveJoinOgFontConfig,
+  type JoinOgFontConfig,
+} from "@/lib/invitations/joinOgFont";
+
+/** OG image uses fs for build-emitted fonts — Node.js only (not Edge). */
+export const runtime = "nodejs";
 
 const OG_HEADLINE = forOgHebrew(JOIN_OG_IMAGE_HEADLINE);
 const OG_TAGLINE = forOgHebrew(JOIN_OG_IMAGE_TAGLINE);
@@ -14,10 +22,6 @@ const OG_SUBLINE = forOgHebrew(JOIN_OG_IMAGE_SUBLINE);
 export const alt = JOIN_OG_IMAGE_ALT;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-
-/** System stack only — no network, no bundled font files (Vercel-safe). */
-const OG_FONT_FAMILY =
-  "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 const COLORS = {
   vaultBlack: "#0e0f0d",
@@ -31,8 +35,42 @@ const COLORS = {
   glassSurface: "rgba(201, 184, 150, 0.08)",
 } as const;
 
+const OG_TEXT = {
+  headline: {
+    fontSize: 50,
+    fontWeight: 600,
+    letterSpacing: "-0.03em",
+    lineHeight: 1.15,
+    marginBottom: 20,
+  },
+  tagline: {
+    fontSize: 34,
+    fontWeight: 500,
+    letterSpacing: "-0.01em",
+    lineHeight: 1.3,
+    marginBottom: 18,
+  },
+  subline: {
+    fontSize: 22,
+    fontWeight: 500,
+    letterSpacing: "0.04em",
+    lineHeight: 1.35,
+  },
+} as const;
+
+function safeJoinOgFontConfig(): JoinOgFontConfig {
+  try {
+    return resolveJoinOgFontConfig();
+  } catch {
+    return fallbackJoinOgFontConfig();
+  }
+}
+
 /** תמונת OG סטטית — ללא token, ללא Firebase, ללא fetch חיצוני. */
 export default function JoinOpenGraphImage() {
+  const ogFont = safeJoinOgFontConfig();
+  const imageOptions = ogFont.fonts ? { ...size, fonts: ogFont.fonts } : { ...size };
+
   try {
     return new ImageResponse(
       (
@@ -45,7 +83,7 @@ export default function JoinOpenGraphImage() {
             alignItems: "center",
             justifyContent: "center",
             background: `linear-gradient(165deg, ${COLORS.vaultBlack} 0%, ${COLORS.deepSurface} 42%, ${COLORS.vaultGraphite} 100%)`,
-            fontFamily: OG_FONT_FAMILY,
+            fontFamily: ogFont.family,
             direction: "ltr",
           }}
         >
@@ -116,35 +154,27 @@ export default function JoinOpenGraphImage() {
             </div>
             <div
               style={{
-                fontSize: 52,
-                fontWeight: 700,
                 color: COLORS.pearl,
                 textAlign: "center",
-                lineHeight: 1.2,
-                marginBottom: 18,
+                ...OG_TEXT.headline,
               }}
             >
               {OG_HEADLINE}
             </div>
             <div
               style={{
-                fontSize: 36,
-                fontWeight: 600,
                 color: COLORS.champagne,
                 textAlign: "center",
-                lineHeight: 1.35,
-                marginBottom: 16,
+                ...OG_TEXT.tagline,
               }}
             >
               {OG_TAGLINE}
             </div>
             <div
               style={{
-                fontSize: 24,
-                fontWeight: 500,
                 color: COLORS.mist,
                 textAlign: "center",
-                letterSpacing: "0.02em",
+                ...OG_TEXT.subline,
               }}
             >
               {OG_SUBLINE}
@@ -152,7 +182,7 @@ export default function JoinOpenGraphImage() {
           </div>
         </div>
       ),
-      { ...size }
+      imageOptions
     );
   } catch (err) {
     console.error("[join/opengraph-image] ImageResponse failed:", err);
@@ -167,15 +197,17 @@ export default function JoinOpenGraphImage() {
             justifyContent: "center",
             background: COLORS.vaultBlack,
             color: COLORS.pearl,
-            fontFamily: OG_FONT_FAMILY,
+            fontFamily: ogFont.family,
             fontSize: 48,
+            fontWeight: 600,
+            letterSpacing: "-0.03em",
             direction: "ltr",
           }}
         >
           {OG_HEADLINE}
         </div>
       ),
-      { ...size }
+      imageOptions
     );
   }
 }

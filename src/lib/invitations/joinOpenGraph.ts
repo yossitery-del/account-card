@@ -12,7 +12,14 @@ export const JOIN_OG_IMAGE_HEADLINE = "כרטיס חשבון משותף";
 
 export const JOIN_OG_IMAGE_TAGLINE = "שני צדדים. תמונה אחת.";
 
-export const JOIN_OG_IMAGE_SUBLINE = "רישום • אישור • בהירות";
+export const JOIN_OG_IMAGE_SUBLINE = "רושמים • מאשרים • מתעדכנים";
+
+/**
+ * App UI uses Assistant via next/font (--font-assistant-family). No font files in repo.
+ * OG uses build-emitted .woff2 from .next/static/media when present; else this stack.
+ */
+export const JOIN_OG_FONT_FAMILY_FALLBACK =
+  "'Arial Hebrew', 'Noto Sans Hebrew', Arial, 'Helvetica Neue', Helvetica, sans-serif";
 
 /**
  * Satori / ImageResponse renders Hebrew visually reversed without proper bidi.
