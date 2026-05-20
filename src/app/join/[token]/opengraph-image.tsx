@@ -1,10 +1,15 @@
 import { ImageResponse } from "next/og";
 import {
+  forOgHebrew,
   JOIN_OG_IMAGE_ALT,
   JOIN_OG_IMAGE_HEADLINE,
   JOIN_OG_IMAGE_SUBLINE,
   JOIN_OG_IMAGE_TAGLINE,
 } from "@/lib/invitations/joinOpenGraph";
+
+const OG_HEADLINE = forOgHebrew(JOIN_OG_IMAGE_HEADLINE);
+const OG_TAGLINE = forOgHebrew(JOIN_OG_IMAGE_TAGLINE);
+const OG_SUBLINE = forOgHebrew(JOIN_OG_IMAGE_SUBLINE);
 
 export const alt = JOIN_OG_IMAGE_ALT;
 export const size = { width: 1200, height: 630 };
@@ -41,7 +46,7 @@ export default function JoinOpenGraphImage() {
             justifyContent: "center",
             background: `linear-gradient(165deg, ${COLORS.vaultBlack} 0%, ${COLORS.deepSurface} 42%, ${COLORS.vaultGraphite} 100%)`,
             fontFamily: OG_FONT_FAMILY,
-            direction: "rtl",
+            direction: "ltr",
           }}
         >
           <div
@@ -119,7 +124,7 @@ export default function JoinOpenGraphImage() {
                 marginBottom: 18,
               }}
             >
-              {JOIN_OG_IMAGE_HEADLINE}
+              {OG_HEADLINE}
             </div>
             <div
               style={{
@@ -131,7 +136,7 @@ export default function JoinOpenGraphImage() {
                 marginBottom: 16,
               }}
             >
-              {JOIN_OG_IMAGE_TAGLINE}
+              {OG_TAGLINE}
             </div>
             <div
               style={{
@@ -142,7 +147,7 @@ export default function JoinOpenGraphImage() {
                 letterSpacing: "0.02em",
               }}
             >
-              {JOIN_OG_IMAGE_SUBLINE}
+              {OG_SUBLINE}
             </div>
           </div>
         </div>
@@ -164,10 +169,10 @@ export default function JoinOpenGraphImage() {
             color: COLORS.pearl,
             fontFamily: OG_FONT_FAMILY,
             fontSize: 48,
-            direction: "rtl",
+            direction: "ltr",
           }}
         >
-          {JOIN_OG_IMAGE_HEADLINE}
+          {OG_HEADLINE}
         </div>
       ),
       { ...size }

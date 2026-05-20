@@ -14,6 +14,14 @@ export const JOIN_OG_IMAGE_TAGLINE = "שני צדדים. תמונה אחת.";
 
 export const JOIN_OG_IMAGE_SUBLINE = "רישום • אישור • בהירות";
 
+/**
+ * Satori / ImageResponse renders Hebrew visually reversed without proper bidi.
+ * Pre-reverse for PNG only — do not use in HTML metadata or UI.
+ */
+export function forOgHebrew(text: string): string {
+  return [...text].reverse().join("");
+}
+
 /** בסיס URL מוחלט ל־og:image (WhatsApp / מטא). */
 export function joinOgMetadataBase(): URL {
   const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim();
