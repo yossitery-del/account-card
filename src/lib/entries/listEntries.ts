@@ -9,6 +9,7 @@ import {
 import { getFirestoreDb } from "@/lib/firebase/client";
 import type { AccountCardEntryWithId } from "@/types/entry";
 import type { CardParticipant } from "@/types/card";
+import { cleanDisplayNameOrNull } from "@/lib/users/displayNameQuality";
 
 export type EntriesListResult = {
   entries: AccountCardEntryWithId[];
@@ -37,7 +38,7 @@ export async function listEntries(cardId: string): Promise<EntriesListResult> {
   const participantNames = new Map<string, string>();
   for (const docSnap of participantsSnap.docs) {
     const p = docSnap.data() as CardParticipant;
-    const displayName = p.displayName?.trim();
+    const displayName = cleanDisplayNameOrNull(p.displayName);
     if (p.uid && displayName) {
       participantNames.set(p.uid, displayName);
     }

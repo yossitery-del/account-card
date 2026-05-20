@@ -1,19 +1,19 @@
 /** נוסח מרכז פיקוד דשבורד — «כרטיס» / «כרטיס חשבון» */
 
 export function primaryStatusMessage(
-  cardsWithPending: number,
+  pendingDecisionsCount: number,
   activeCardCount?: number
 ): string {
   if (activeCardCount === 0) {
     return "מוכן לפתיחת כרטיס ראשון";
   }
-  if (cardsWithPending === 1) {
-    return "כרטיס אחד ממתין לאישור";
+  if (pendingDecisionsCount === 1) {
+    return "החלטה אחת ממתינה לאישורך";
   }
-  if (cardsWithPending > 1) {
-    return `${cardsWithPending} כרטיסים ממתינים לאישור`;
+  if (pendingDecisionsCount > 1) {
+    return `${pendingDecisionsCount} החלטות ממתינות לאישורך`;
   }
-  return "אין פעולות לביצוע";
+  return "הכול מעודכן";
 }
 
 export function activeCardsMeta(count: number): string {

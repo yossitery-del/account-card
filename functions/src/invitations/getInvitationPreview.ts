@@ -1,6 +1,7 @@
 import {Timestamp} from "firebase-admin/firestore";
 import {onCall} from "firebase-functions/v2/https";
 import {db, FUNCTIONS_REGION} from "../lib/admin";
+import {isCleanDisplayName} from "../lib/displayNameQuality";
 import {tryParseInviteToken} from "../lib/parseInviteToken";
 import {previewLog} from "../lib/safePreviewLog";
 import {hashInviteToken} from "../lib/tokens";
@@ -82,7 +83,7 @@ export const getInvitationPreview = onCall(
       if (typeof createdByUid === "string" && createdByUid) {
         const userSnap = await db.collection("users").doc(createdByUid).get();
         const name = userSnap.data()?.displayName;
-        if (typeof name === "string" && name.trim()) {
+        if (typeof name === "string" && isCleanDisplayName(name)) {
           inviterDisplayName = name.trim();
         }
       }

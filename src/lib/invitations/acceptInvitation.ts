@@ -8,11 +8,12 @@ export type AcceptInvitationResult = {
 };
 
 export async function acceptInvitation(
-  token: string
+  token: string,
+  displayName?: string
 ): Promise<AcceptInvitationResult> {
   const trimmed = token.trim();
   if (!trimmed) {
     throw new Error("missing token");
   }
-  return callAcceptInvitationFunction(trimmed);
+  return callAcceptInvitationFunction(trimmed, displayName);
 }

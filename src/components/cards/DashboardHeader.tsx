@@ -40,12 +40,12 @@ export function DashboardCommandCenter({ cards }: DashboardCommandCenterProps) {
   const stats = useMemo(() => computeDashboardStats(cards), [cards]);
 
   const statusPrimary = primaryStatusMessage(
-    stats.cardsWithPending,
+    stats.pendingDecisionsCount,
     stats.activeCardCount
   );
   const cardsMeta = activeCardsMeta(stats.activeCardCount);
   const dateTimeLine = formatLocalDateTimeLine(now);
-  const hasAttention = stats.cardsWithPending > 0;
+  const hasAttention = stats.pendingDecisionsCount > 0;
 
   if (!greeting) {
     return null;

@@ -7,8 +7,10 @@ import {
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {db, FUNCTIONS_REGION} from "../lib/admin";
 import {requireAuthUid} from "../lib/auth";
+import {isCleanDisplayName} from "../lib/displayNameQuality";
 import {emailDomain, profileFromToken} from "../lib/profileFromToken";
 import {parseInviteToken} from "../lib/parseInviteToken";
+import {parseParticipantDisplayName} from "../lib/validators";
 import {
   activeParticipantsFromSnapshot,
   buildDashboardPendingSummaryFields,
@@ -18,6 +20,8 @@ import {hashInviteToken} from "../lib/tokens";
 
 export type AcceptInvitationInput = {
   token: string;
+  /** שם תצוגה אנושי לצד השני — חובה כששם Google/Auth לא נקי */
+  displayName?: string;
 };
 
 export type AcceptInvitationOutput = {
@@ -93,7 +97,11 @@ export const acceptInvitation = onCall(
     const uid = requireAuthUid(request);
     const token = parseInviteToken(request.data?.token);
     const tokenHash = hashInviteToken(token);
-    const {email, displayName} = profileFromToken(request);
+    const {email, displayName: tokenDisplayName} = profileFromToken(request);
+    const participantDisplayName = resolveAcceptParticipantDisplayName(
+      request.data?.displayName,
+      tokenDisplayName
+    );
 
     const lookup = await db
       .collectionGroup("invitations")
@@ -197,7 +205,7 @@ export const acceptInvitation = onCall(
       transaction.set(participantRef, {
         uid,
         email: acceptedEmail ?? "",
-        displayName,
+        displayName: participantDisplayName,
         role: "participant",
         status: "active",
         joinedAt: now,
@@ -245,3 +253,20 @@ export const acceptInvitation = onCall(
     });
   }
 );
+
+function resolveAcceptParticipantDisplayName(
+  rawDisplayName: unknown,
+  tokenDisplayName: string
+): string {
+  if (rawDisplayName !== undefined && rawDisplayName !== null && rawDisplayName !== "") {
+    return parseParticipantDisplayName(rawDisplayName);
+  }
+  const trimmedToken = tokenDisplayName.trim();
+  if (isCleanDisplayName(trimmedToken)) {
+    return trimmedToken;
+  }
+  throw new HttpsError(
+    "invalid-argument",
+    "נא להזין שם תצוגה תקין לצד השני"
+  );
+}

@@ -116,6 +116,7 @@ export type GetInvitationPreviewCallableResult = {
 
 export type AcceptInvitationInput = {
   token: string;
+  displayName?: string;
 };
 
 export type AcceptInvitationCallableResult = {
@@ -241,13 +242,18 @@ export async function callEditEntryFunction(
 
 /** קריאה ל-Callable `acceptInvitation` — Stage 2B-4 (auth חובה). */
 export async function callAcceptInvitationFunction(
-  token: string
+  token: string,
+  displayName?: string
 ): Promise<AcceptInvitationCallableResult> {
   const callable = httpsCallable<
     AcceptInvitationInput,
     AcceptInvitationCallableResult
   >(getFirebaseFunctions(), "acceptInvitation");
-  const result = await callable({ token: token.trim() });
+  const trimmedName = displayName?.trim();
+  const result = await callable({
+    token: token.trim(),
+    ...(trimmedName ? { displayName: trimmedName } : {}),
+  });
   return result.data;
 }
 

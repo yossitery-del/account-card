@@ -15,6 +15,10 @@ import {
 } from "@/lib/invitations/joinIntent";
 import { mapAcceptInvitationError } from "@/lib/invitations/joinAcceptErrors";
 import {
+  JOIN_DISPLAY_NAME_CONTINUE,
+  JOIN_DISPLAY_NAME_HELPER,
+  JOIN_DISPLAY_NAME_LABEL,
+  JOIN_DISPLAY_NAME_PLACEHOLDER,
   JOIN_ERROR_MESSAGES,
   JOIN_LOGGED_IN_SECURE_LABEL,
   JOIN_PREVIEW_ACCEPTING,
@@ -27,6 +31,11 @@ import {
   joinInviterSecondaryLine,
   joinLoggedInAs,
 } from "@/lib/invitations/joinPreviewCopy";
+import {
+  isCleanDisplayName,
+  suggestedDisplayNameFromAuth,
+  validateDisplayNameInput,
+} from "@/lib/users/displayNameQuality";
 import type { InvitationPreviewResult } from "@/types/invitation";
 
 type JoinPreviewScreenProps = {
@@ -35,13 +44,15 @@ type JoinPreviewScreenProps = {
   onAuthChange: () => void;
 };
 
-function displayNameFromUser(user: {
+function joinSessionLabel(user: {
   displayName: string | null;
   email: string | null;
 }): string {
-  const name = user.displayName?.trim();
-  if (name) {
-    return name;
+  const clean = isCleanDisplayName(user.displayName)
+    ? user.displayName!.trim()
+    : null;
+  if (clean) {
+    return clean;
   }
   if (user.email) {
     return user.email;
@@ -60,32 +71,52 @@ export function JoinPreviewScreen({
   const [signInError, setSignInError] = useState<string | null>(null);
   const [acceptPending, setAcceptPending] = useState(false);
   const [acceptError, setAcceptError] = useState<string | null>(null);
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
   const acceptInFlightRef = useRef(false);
 
-  const runAccept = useCallback(async () => {
-    if (acceptInFlightRef.current) {
-      return;
-    }
-    if (!token.trim()) {
-      setAcceptError(JOIN_ERROR_MESSAGES.invalid);
-      return;
-    }
+  const needsDisplayNameStep = Boolean(
+    user && !isCleanDisplayName(user.displayName)
+  );
 
-    acceptInFlightRef.current = true;
-    setAcceptError(null);
-    setAcceptPending(true);
-    try {
-      const result = await acceptInvitation(token);
-      clearJoinIntent();
-      router.push(`/app/cards/${result.cardId}`);
-    } catch (err) {
-      console.error("acceptInvitation failed:", err);
-      acceptInFlightRef.current = false;
-      setAcceptError(mapAcceptInvitationError(err));
-    } finally {
-      setAcceptPending(false);
-    }
-  }, [token, router]);
+  const runAccept = useCallback(
+    async (explicitDisplayName?: string) => {
+      if (acceptInFlightRef.current) {
+        return;
+      }
+      if (!token.trim()) {
+        setAcceptError(JOIN_ERROR_MESSAGES.invalid);
+        return;
+      }
+
+      const trimmedExplicit = explicitDisplayName?.trim();
+      const tokenName = user?.displayName?.trim() ?? "";
+      const resolvedName =
+        trimmedExplicit ||
+        (isCleanDisplayName(tokenName) ? tokenName : undefined);
+
+      if (!resolvedName || !isCleanDisplayName(resolvedName)) {
+        setDisplayNameError("נא להזין שם תצוגה תקין");
+        return;
+      }
+
+      acceptInFlightRef.current = true;
+      setAcceptError(null);
+      setDisplayNameError(null);
+      setAcceptPending(true);
+      try {
+        const result = await acceptInvitation(token, resolvedName);
+        clearJoinIntent();
+        router.push(`/app/cards/${result.cardId}`);
+      } catch (err) {
+        console.error("acceptInvitation failed:", err);
+        acceptInFlightRef.current = false;
+        setAcceptError(mapAcceptInvitationError(err));
+      } finally {
+        setAcceptPending(false);
+      }
+    },
+    [token, router, user]
+  );
 
   useEffect(() => {
     if (!user || preview.status !== "valid" || !token.trim()) {
@@ -94,9 +125,11 @@ export function JoinPreviewScreen({
     if (!consumeJoinIntentForToken(token)) {
       return;
     }
-    queueMicrotask(() => {
-      void runAccept();
-    });
+    if (isCleanDisplayName(user.displayName)) {
+      queueMicrotask(() => {
+        void runAccept(user.displayName!.trim());
+      });
+    }
   }, [user, preview.status, token, runAccept]);
 
   const handleGoogleSignIn = useCallback(async () => {
@@ -142,85 +175,177 @@ export function JoinPreviewScreen({
   }
 
   const inviterNote = joinInviterSecondaryLine(preview.inviterDisplayName);
-
   const joinBusy = acceptPending;
 
   return (
     <>
       <div className="glass-card rounded-2xl p-8">
-      <h1
-        className={`text-2xl font-medium leading-snug text-[var(--color-pearl)] ${
-          inviterNote ? "mb-2" : "mb-4"
-        }`}
-      >
-        {JOIN_PREVIEW_MAIN_HEADLINE}
-      </h1>
-      {inviterNote ? (
-        <p className="mb-5 text-xs leading-relaxed text-[var(--color-mist)]/75">
-          {inviterNote}
+        <h1
+          className={`text-2xl font-medium leading-snug text-[var(--color-pearl)] ${
+            inviterNote ? "mb-2" : "mb-4"
+          }`}
+        >
+          {JOIN_PREVIEW_MAIN_HEADLINE}
+        </h1>
+        {inviterNote ? (
+          <p className="mb-5 text-xs leading-relaxed text-[var(--color-mist)]/75">
+            {inviterNote}
+          </p>
+        ) : null}
+        <div className="mb-8">
+          <p className="text-sm leading-relaxed text-[var(--color-mist)]">
+            {JOIN_PREVIEW_VALUE_PROSE}
+          </p>
+        </div>
+        {user ? (
+          needsDisplayNameStep ? (
+            <JoinDisplayNameStep
+              key={user.uid}
+              user={user}
+              acceptPending={acceptPending}
+              displayNameError={displayNameError}
+              acceptError={acceptError}
+              onContinue={(name) => {
+                const validationError = validateDisplayNameInput(name);
+                if (validationError) {
+                  setDisplayNameError(validationError);
+                  return;
+                }
+                setDisplayNameError(null);
+                void runAccept(name);
+              }}
+              onInputChange={() => setDisplayNameError(null)}
+            />
+          ) : (
+            <div
+              className="rounded-xl border border-[var(--color-glass-border)] bg-[rgba(201,184,150,0.06)] p-5 ring-1 ring-inset ring-[var(--color-champagne)]/10"
+              role="status"
+            >
+              <p className="mb-1 text-sm text-[var(--color-mist)]">
+                {JOIN_LOGGED_IN_SECURE_LABEL}
+              </p>
+              <p className="mb-4 text-sm font-medium text-[var(--color-pearl)]">
+                {joinLoggedInAs(joinSessionLabel(user))}
+              </p>
+              <button
+                type="button"
+                onClick={handleAcceptClick}
+                disabled={acceptPending}
+                className="w-full rounded-full border border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] px-6 py-4 text-base font-medium text-[var(--color-pearl)] shadow-[0_4px_24px_rgba(201,184,150,0.12)] transition-[background-color,box-shadow] hover:bg-[rgba(201,184,150,0.2)] disabled:opacity-50"
+              >
+                {acceptPending ? JOIN_PREVIEW_ACCEPTING : JOIN_PREVIEW_CTA}
+              </button>
+              {acceptError ? (
+                <p
+                  className="mt-3 text-center text-sm text-[var(--color-muted-rose)]"
+                  role="alert"
+                >
+                  {acceptError}
+                </p>
+              ) : null}
+            </div>
+          )
+        ) : (
+          <div className="space-y-3">
+            <p className="text-center text-sm text-[var(--color-mist)]">
+              {JOIN_PREVIEW_SIGN_IN_LABEL}
+            </p>
+            <button
+              type="button"
+              onClick={() => void handleGoogleSignIn()}
+              disabled={signInPending || acceptPending}
+              className="w-full rounded-full border border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] px-6 py-4 text-base font-medium text-[var(--color-pearl)] shadow-[0_4px_24px_rgba(201,184,150,0.12)] transition-[background-color,box-shadow] hover:bg-[rgba(201,184,150,0.2)] disabled:opacity-50"
+            >
+              {signInPending ? "מתחבר..." : JOIN_PREVIEW_GOOGLE_CTA}
+            </button>
+            <p className="text-center text-[11px] leading-relaxed text-[var(--color-mist)]/65">
+              {JOIN_PREVIEW_GOOGLE_NOTE}
+            </p>
+            {signInError ? (
+              <p
+                className="text-center text-sm text-[var(--color-muted-rose)]"
+                role="alert"
+              >
+                {signInError}
+              </p>
+            ) : null}
+          </div>
+        )}
+      </div>
+      <ProcessingOverlay visible={joinBusy} label={loadingLabels.joiningCard} />
+    </>
+  );
+}
+
+type JoinDisplayNameStepProps = {
+  user: { displayName: string | null; email: string | null; uid: string };
+  acceptPending: boolean;
+  displayNameError: string | null;
+  acceptError: string | null;
+  onContinue: (name: string) => void;
+  onInputChange: () => void;
+};
+
+function JoinDisplayNameStep({
+  user,
+  acceptPending,
+  displayNameError,
+  acceptError,
+  onContinue,
+  onInputChange,
+}: JoinDisplayNameStepProps) {
+  const [displayNameInput, setDisplayNameInput] = useState(() =>
+    suggestedDisplayNameFromAuth(user.displayName)
+  );
+
+  return (
+    <div className="space-y-4">
+      <p className="mb-1 text-sm text-[var(--color-mist)]">
+        {JOIN_LOGGED_IN_SECURE_LABEL}
+      </p>
+      <p className="text-sm font-medium text-[var(--color-pearl)]">
+        {joinLoggedInAs(joinSessionLabel(user))}
+      </p>
+      <label className="block text-sm text-[var(--color-mist)]">
+        {JOIN_DISPLAY_NAME_LABEL}
+      </label>
+      <input
+        type="text"
+        value={displayNameInput}
+        onChange={(e) => {
+          setDisplayNameInput(e.target.value);
+          onInputChange();
+        }}
+        disabled={acceptPending}
+        maxLength={80}
+        autoFocus
+        placeholder={JOIN_DISPLAY_NAME_PLACEHOLDER}
+        className="w-full rounded-xl border border-[var(--color-glass-border)] bg-[var(--color-glass-surface)] px-4 py-3 text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
+      />
+      <p className="text-xs leading-relaxed text-[var(--color-mist)]">
+        {JOIN_DISPLAY_NAME_HELPER}
+      </p>
+      {displayNameError ? (
+        <p className="text-sm text-[var(--color-muted-rose)]" role="alert">
+          {displayNameError}
         </p>
       ) : null}
-      <div className="mb-8">
-        <p className="text-sm leading-relaxed text-[var(--color-mist)]">
-          {JOIN_PREVIEW_VALUE_PROSE}
-        </p>
-      </div>
-      {user ? (
-        <div
-          className="rounded-xl border border-[var(--color-glass-border)] bg-[rgba(201,184,150,0.06)] p-5 ring-1 ring-inset ring-[var(--color-champagne)]/10"
-          role="status"
+      <button
+        type="button"
+        onClick={() => onContinue(displayNameInput)}
+        disabled={acceptPending}
+        className="w-full rounded-full border border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] px-6 py-4 text-base font-medium text-[var(--color-pearl)] shadow-[0_4px_24px_rgba(201,184,150,0.12)] transition-[background-color,box-shadow] hover:bg-[rgba(201,184,150,0.2)] disabled:opacity-50"
+      >
+        {acceptPending ? JOIN_PREVIEW_ACCEPTING : JOIN_DISPLAY_NAME_CONTINUE}
+      </button>
+      {acceptError ? (
+        <p
+          className="text-center text-sm text-[var(--color-muted-rose)]"
+          role="alert"
         >
-          <p className="mb-1 text-sm text-[var(--color-mist)]">
-            {JOIN_LOGGED_IN_SECURE_LABEL}
-          </p>
-          <p className="mb-4 text-sm font-medium text-[var(--color-pearl)]">
-            {joinLoggedInAs(displayNameFromUser(user))}
-          </p>
-          <button
-            type="button"
-            onClick={handleAcceptClick}
-            disabled={acceptPending}
-            className="w-full rounded-full border border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] px-6 py-4 text-base font-medium text-[var(--color-pearl)] shadow-[0_4px_24px_rgba(201,184,150,0.12)] transition-[background-color,box-shadow] hover:bg-[rgba(201,184,150,0.2)] disabled:opacity-50"
-          >
-            {acceptPending ? JOIN_PREVIEW_ACCEPTING : JOIN_PREVIEW_CTA}
-          </button>
-          {acceptError ? (
-            <p
-              className="mt-3 text-center text-sm text-[var(--color-muted-rose)]"
-              role="alert"
-            >
-              {acceptError}
-            </p>
-          ) : null}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <p className="text-center text-sm text-[var(--color-mist)]">
-            {JOIN_PREVIEW_SIGN_IN_LABEL}
-          </p>
-          <button
-            type="button"
-            onClick={() => void handleGoogleSignIn()}
-            disabled={signInPending || acceptPending}
-            className="w-full rounded-full border border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] px-6 py-4 text-base font-medium text-[var(--color-pearl)] shadow-[0_4px_24px_rgba(201,184,150,0.12)] transition-[background-color,box-shadow] hover:bg-[rgba(201,184,150,0.2)] disabled:opacity-50"
-          >
-            {signInPending ? "מתחבר..." : JOIN_PREVIEW_GOOGLE_CTA}
-          </button>
-          <p className="text-center text-[11px] leading-relaxed text-[var(--color-mist)]/65">
-            {JOIN_PREVIEW_GOOGLE_NOTE}
-          </p>
-          {signInError ? (
-            <p
-              className="text-center text-sm text-[var(--color-muted-rose)]"
-              role="alert"
-            >
-              {signInError}
-            </p>
-          ) : null}
-        </div>
-      )}
+          {acceptError}
+        </p>
+      ) : null}
     </div>
-    <ProcessingOverlay visible={joinBusy} label={loadingLabels.joiningCard} />
-    </>
   );
 }

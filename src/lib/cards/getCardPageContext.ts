@@ -3,6 +3,7 @@
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase/client";
 import { resolveViewerCardDisplayTitle } from "@/lib/cards/resolveViewerCardDisplayTitle";
+import { cleanDisplayNameOrNull } from "@/lib/users/displayNameQuality";
 import type { AccountCard, CardParticipant } from "@/types/card";
 import type { AccountCardWithId } from "@/lib/cards/getAccountCard";
 
@@ -58,7 +59,7 @@ export async function getCardPageContext(
         typeof participant.uid === "string" && participant.uid
           ? participant.uid
           : docSnap.id;
-      const displayName = participant.displayName?.trim();
+      const displayName = cleanDisplayNameOrNull(participant.displayName);
       return participantUid !== uid && displayName ? displayName : null;
     })
     .find((name): name is string => name !== null);

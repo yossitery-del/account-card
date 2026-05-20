@@ -13,6 +13,17 @@ export const JOIN_PREVIEW_GOOGLE_CTA = "כניסה עם Google";
 export const JOIN_PREVIEW_GOOGLE_NOTE =
   "נשתמש בחשבון Google כדי לפתוח את הכרטיס בצורה בטוחה.";
 
+export const JOIN_DISPLAY_NAME_LABEL =
+  "איך תרצה שיופיע השם שלך לצד השני?";
+
+export const JOIN_DISPLAY_NAME_PLACEHOLDER =
+  "לדוגמה: יוסי טיירי / מהדרין תשמישי קדושה";
+
+export const JOIN_DISPLAY_NAME_HELPER =
+  "זה השם שיופיע בכרטיס אצל הצד השני.";
+
+export const JOIN_DISPLAY_NAME_CONTINUE = "המשך לכרטיס";
+
 export const JOIN_PREVIEW_CTA = "כניסה לכרטיס";
 
 export const JOIN_PREVIEW_ACCEPTING = "פותחים את הכרטיס...";

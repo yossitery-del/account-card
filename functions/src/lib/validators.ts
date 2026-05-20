@@ -1,4 +1,9 @@
 import {HttpsError} from "firebase-functions/v2/https";
+import {
+  DISPLAY_NAME_MAX,
+  DISPLAY_NAME_MIN,
+  isCleanDisplayName,
+} from "./displayNameQuality";
 
 const OPTIONAL_LABEL_MAX = 100;
 const REJECTION_NOTE_MAX = 200;
@@ -59,4 +64,22 @@ export function parseRejectionNote(raw: unknown): string | null {
     throw new HttpsError("invalid-argument", "הערת דחייה ארוכה מדי");
   }
   return note;
+}
+
+const MSG_DISPLAY_NAME_INVALID = "שם תצוגה לא תקין";
+
+/** שם תצוגה ל-participant — חובה, אנושי, ללא אימייל/מזהה טכני. */
+export function parseParticipantDisplayName(raw: unknown): string {
+  if (typeof raw !== "string") {
+    throw new HttpsError("invalid-argument", MSG_DISPLAY_NAME_INVALID);
+  }
+  const value = raw.trim().replace(/\s+/g, " ");
+  if (
+    value.length < DISPLAY_NAME_MIN ||
+    value.length > DISPLAY_NAME_MAX ||
+    !isCleanDisplayName(value)
+  ) {
+    throw new HttpsError("invalid-argument", MSG_DISPLAY_NAME_INVALID);
+  }
+  return value;
 }

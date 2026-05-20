@@ -1,3 +1,5 @@
+import { cleanDisplayNameOrNull } from "@/lib/users/displayNameQuality";
+
 /**
  * Viewer-facing card title for pilot — derived in the client only.
  * Does not change stored accountCards.title.
@@ -6,6 +8,7 @@
 export type ParticipantTitleInput = {
   uid: string;
   displayName?: string | null;
+  labelForMe?: string | null;
 };
 
 /**
@@ -29,9 +32,16 @@ export function resolveViewerCardDisplayTitle(
     return fallback;
   }
 
-  const name = others[0]?.displayName?.trim();
-  if (name) {
-    return name;
+  const other = others[0];
+  const labelForMe =
+    typeof other?.labelForMe === "string" ? other.labelForMe.trim() : "";
+  if (labelForMe) {
+    return labelForMe;
+  }
+
+  const cleanName = cleanDisplayNameOrNull(other?.displayName);
+  if (cleanName) {
+    return cleanName;
   }
 
   return fallback;

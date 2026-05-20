@@ -5,7 +5,8 @@ export function profileFromToken(request: {
   const token = request.auth?.token;
   const email = typeof token?.email === "string" ? token.email : "";
   const tokenName = typeof token?.name === "string" ? token.name.trim() : "";
-  const displayName = tokenName || email || "משתמש";
+  /** לא משתמשים באימייל כ-displayName — מונע שמות מסך מכוערים בכרטיסים */
+  const displayName = tokenName;
   return {email, displayName};
 }
 
