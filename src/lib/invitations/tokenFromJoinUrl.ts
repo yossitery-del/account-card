@@ -1,14 +1,9 @@
+import { tokenFromInvitePath } from "@/lib/invitations/invitePaths";
+
 /**
- * מחלץ token מנתיב /join/[token] — מפענח URI בבטחה, שומר Base64URL (`-`, `_`).
+ * מחלץ token מנתיב /join/[token] או /j/[token] — מפענח URI בבטחה.
+ * @deprecated Prefer tokenFromInvitePath
  */
 export function tokenFromJoinUrl(raw: string): string {
-  const trimmed = raw.trim();
-  if (!trimmed) {
-    return "";
-  }
-  try {
-    return decodeURIComponent(trimmed).trim();
-  } catch {
-    return trimmed;
-  }
+  return tokenFromInvitePath(raw);
 }

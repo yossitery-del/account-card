@@ -24,7 +24,10 @@ export function buildInviteMessageForCopy(inviteLink: string): string {
 export function formatInviteLinkPreview(inviteLink: string): string {
   try {
     const url = new URL(inviteLink);
-    return url.hostname;
+    const path = url.pathname.startsWith("/j/")
+      ? url.pathname
+      : url.pathname.replace(/^\/join\//, "/j/");
+    return `${url.hostname}${path.length > 28 ? `${path.slice(0, 24)}…` : path}`;
   } catch {
     return "קישור כרטיס";
   }

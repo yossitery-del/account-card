@@ -85,17 +85,17 @@ function PhoneMockup() {
     <div
       style={{
         display: "flex",
-        transform: "rotate(-7deg)",
-        marginTop: 6,
-        marginLeft: -24,
+        transform: "rotate(-5deg) scale(1.04)",
+        marginTop: -8,
+        marginLeft: -40,
       }}
     >
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          width: 334,
-          height: 558,
+          width: 318,
+          height: 536,
           borderRadius: 40,
           padding: 12,
           background: `linear-gradient(145deg, ${COLORS.vaultGraphite} 0%, ${COLORS.vaultBlack} 100%)`,
@@ -228,7 +228,10 @@ function PhoneMockup() {
   );
 }
 
-/** תמונת OG סטטית — ללא token, ללא Firebase, ללא fetch חיצוני. */
+/**
+ * תמונת OG סטטית לזחלני WhatsApp — לא דף join.
+ * @see src/lib/invitations/inviteExperience.ts
+ */
 export default function JoinOpenGraphImage() {
   const ogFont = safeJoinOgFontConfig();
   const imageOptions = ogFont.fonts ? { ...size, fonts: ogFont.fonts } : { ...size };
@@ -243,8 +246,9 @@ export default function JoinOpenGraphImage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "28px 36px",
-            background: `linear-gradient(128deg, ${COLORS.vaultBlack} 0%, ${COLORS.deepSurface} 45%, ${COLORS.vaultGraphite} 100%)`,
+            padding: "14px 18px",
+            overflow: "hidden",
+            background: `linear-gradient(145deg, ${COLORS.vaultBlack} 0%, ${COLORS.deepSurface} 38%, ${COLORS.vaultGraphite} 72%, ${COLORS.vaultBlack} 100%)`,
             fontFamily: ogFont.family,
             direction: "ltr",
             position: "relative",
@@ -253,15 +257,39 @@ export default function JoinOpenGraphImage() {
           <div
             style={{
               position: "absolute",
-              top: "50%",
-              left: "58%",
-              width: 520,
-              height: 520,
-              marginTop: -260,
-              marginLeft: -260,
-              borderRadius: "50%",
+              inset: 0,
               background:
-                "radial-gradient(circle, rgba(194,176,146,0.14) 0%, transparent 62%)",
+                "radial-gradient(ellipse 95% 80% at 72% 42%, rgba(194,176,146,0.16) 0%, transparent 58%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(0deg, rgba(14,15,13,0.92) 0%, transparent 28%, transparent 72%, rgba(14,15,13,0.85) 100%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 3,
+              background: `linear-gradient(90deg, transparent, ${COLORS.champagne}, transparent)`,
+              opacity: 0.55,
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 3,
+              background: `linear-gradient(90deg, transparent, ${COLORS.goldGreen}, transparent)`,
+              opacity: 0.4,
             }}
           />
           <div
@@ -269,8 +297,10 @@ export default function JoinOpenGraphImage() {
               display: "flex",
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
+              justifyContent: "space-between",
+              width: "100%",
+              maxWidth: 1160,
+              gap: 0,
               zIndex: 1,
             }}
           >
@@ -279,9 +309,9 @@ export default function JoinOpenGraphImage() {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
-                width: 430,
+                width: 500,
                 flexShrink: 0,
-                paddingRight: 8,
+                paddingRight: 4,
               }}
             >
               <div
@@ -306,11 +336,12 @@ export default function JoinOpenGraphImage() {
                 style={{
                   display: "flex",
                   color: COLORS.pearl,
-                  fontSize: 44,
-                  fontWeight: 600,
-                  letterSpacing: "-0.035em",
-                  lineHeight: 1.1,
-                  marginBottom: 12,
+                  fontSize: 48,
+                  fontWeight: 700,
+                  letterSpacing: "-0.04em",
+                  lineHeight: 1.08,
+                  marginBottom: 10,
+                  textShadow: "0 2px 24px rgba(0,0,0,0.35)",
                 }}
               >
                 {OG_HEADLINE}
@@ -319,11 +350,11 @@ export default function JoinOpenGraphImage() {
                 style={{
                   display: "flex",
                   color: COLORS.champagne,
-                  fontSize: 28,
+                  fontSize: 30,
                   fontWeight: 600,
-                  letterSpacing: "-0.015em",
-                  lineHeight: 1.22,
-                  marginBottom: 10,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1.2,
+                  marginBottom: 8,
                 }}
               >
                 {OG_TAGLINE}
@@ -332,10 +363,10 @@ export default function JoinOpenGraphImage() {
                 style={{
                   display: "flex",
                   color: COLORS.mist,
-                  fontSize: 19,
+                  fontSize: 20,
                   fontWeight: 500,
-                  letterSpacing: "0.02em",
-                  lineHeight: 1.3,
+                  letterSpacing: "0.01em",
+                  lineHeight: 1.28,
                 }}
               >
                 {OG_SUBLINE}
@@ -345,8 +376,10 @@ export default function JoinOpenGraphImage() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
+                justifyContent: "flex-end",
+                flex: 1,
+                minWidth: 360,
+                overflow: "hidden",
               }}
             >
               <PhoneMockup />

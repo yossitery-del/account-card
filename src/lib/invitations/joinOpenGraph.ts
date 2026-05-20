@@ -1,4 +1,8 @@
-/** Open Graph — הזמנה (/join). תוכן קבוע בלבד, ללא token / Firebase / נתוני כרטיס. */
+/**
+ * Open Graph — תצוגת WhatsApp / זחלנים בלבד (/j, /join).
+ * לא דף join למשתמש — ראה inviteExperience.ts ו־JoinLandingPage.
+ * תוכן קבוע בלבד, ללא token / Firebase / נתוני כרטיס.
+ */
 
 export const JOIN_OG_TITLE = "כרטיס חשבון משותף";
 

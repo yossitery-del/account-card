@@ -84,7 +84,7 @@ export const createInvitation = onCall(
     await batch.commit();
 
     const baseUrl = getAppBaseUrl();
-    const inviteLink = `${baseUrl}/join/${rawToken}`;
+    const inviteLink = `${baseUrl}/j/${encodeURIComponent(rawToken)}`;
 
     return {
       inviteLink,

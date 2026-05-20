@@ -1,4 +1,7 @@
-/** נוסח מאושר — Join Preview (Stage 2B-3) */
+/** נוסח מאושר — Join landing (אחרי לחיצה על הקישור; לא OG) */
+
+export const JOIN_LANDING_TRUST_LINE =
+  "גישה מאובטחת · רק למשתתפים בכרטיס";
 
 /** כותרת ראשית — ערך המוצר, לא זהות השולח */
 export const JOIN_PREVIEW_MAIN_HEADLINE = "כרטיס חשבון משותף";

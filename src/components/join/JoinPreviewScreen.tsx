@@ -160,7 +160,7 @@ export function JoinPreviewScreen({
   if (preview.status !== "valid") {
     const message = JOIN_ERROR_MESSAGES[preview.status];
     return (
-      <div className="glass-card rounded-2xl p-8 text-center">
+      <div className="join-hero-card rounded-2xl p-8 text-center">
         <p className="mb-8 text-sm leading-relaxed text-[var(--color-mist)]" role="alert">
           {message}
         </p>
@@ -179,16 +179,16 @@ export function JoinPreviewScreen({
 
   return (
     <>
-      <div className="glass-card rounded-2xl p-8">
+      <div className="join-hero-card rounded-2xl p-7 sm:p-8">
         <h1
-          className={`text-2xl font-medium leading-snug text-[var(--color-pearl)] ${
+          className={`text-[1.65rem] font-semibold leading-snug tracking-tight text-[var(--color-pearl)] sm:text-2xl ${
             inviterNote ? "mb-2" : "mb-4"
           }`}
         >
           {JOIN_PREVIEW_MAIN_HEADLINE}
         </h1>
         {inviterNote ? (
-          <p className="mb-5 text-xs leading-relaxed text-[var(--color-mist)]/75">
+          <p className="mb-5 text-sm leading-relaxed text-[var(--color-champagne)]/85">
             {inviterNote}
           </p>
         ) : null}
