@@ -14,6 +14,9 @@ export const JOIN_OG_IMAGE_TAGLINE = "שני צדדים. תמונה אחת.";
 
 export const JOIN_OG_IMAGE_SUBLINE = "רושמים • מאשרים • מתעדכנים";
 
+/** סטטוס מזויף במסך הטלפון ב-OG — מספר קבוע, לא נתוני משתמש */
+export const JOIN_OG_MOCK_APP_STATUS = "2 החלטות ממתינות לאישורך";
+
 /**
  * App UI uses Assistant via next/font (--font-assistant-family). No font files in repo.
  * OG uses build-emitted .woff2 from .next/static/media when present; else this stack.
