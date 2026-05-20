@@ -5,12 +5,14 @@ export const JOIN_OG_TITLE = "כרטיס חשבון משותף";
 export const JOIN_OG_DESCRIPTION =
   "מקום מסודר לרישום חיובים, החזרים ואישורים בין שני צדדים.";
 
-export const JOIN_OG_IMAGE_ALT = "כרטיס חשבון — כרטיס משותף ברור ומאושר";
+export const JOIN_OG_IMAGE_ALT = "כרטיס חשבון משותף — שני צדדים, תמונה אחת";
 
 /** כותרות בתוך תמונת OG — לא נתונים אמיתיים מהמערכת */
-export const JOIN_OG_IMAGE_HEADLINE = "כרטיס חשבון";
+export const JOIN_OG_IMAGE_HEADLINE = "כרטיס חשבון משותף";
 
-export const JOIN_OG_IMAGE_TAGLINE = "כרטיס משותף ברור ומאושר";
+export const JOIN_OG_IMAGE_TAGLINE = "שני צדדים. תמונה אחת.";
+
+export const JOIN_OG_IMAGE_SUBLINE = "רישום • אישור • בהירות";
 
 /** בסיס URL מוחלט ל־og:image (WhatsApp / מטא). */
 export function joinOgMetadataBase(): URL {
