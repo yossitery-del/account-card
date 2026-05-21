@@ -7,7 +7,7 @@
 export const JOIN_OG_TITLE = "כרטיס חשבון משותף";
 
 export const JOIN_OG_DESCRIPTION =
-  "מקום מסודר לרישום חיובים, החזרים ואישורים בין שני צדדים.";
+  "מקום מסודר לרישום חיובים וזיכויים בין שני צדדים.";
 
 export const JOIN_OG_IMAGE_ALT = "כרטיס חשבון משותף — שני צדדים, תמונה אחת";
 

@@ -13,7 +13,7 @@ export function buildInviteShareTitle(): string {
 
 /** נוסח קצר ל-Web Share — הקישור מועבר ב-`url`. */
 export function buildInviteShareText(): string {
-  return "פתחתי לנו כרטיס חשבון משותף — מקום מסודר לנהל את החשבון בינינו.";
+  return "פתחתי לנו כרטיס חשבון. כנס כאן 👇🏼";
 }
 
 export function buildInviteMessageForCopy(inviteLink: string): string {
