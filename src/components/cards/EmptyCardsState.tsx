@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { DASHBOARD_NEW_CARD_INDEPENDENCE_HINT } from "@/lib/cards/dashboardCopy";
 
 export function EmptyCardsState() {
   return (
@@ -7,11 +6,8 @@ export function EmptyCardsState() {
       <p className="mb-2 text-lg text-[var(--color-pearl)]">
         פתח כרטיס חשבון ראשון
       </p>
-      <p className="mb-4 text-sm leading-relaxed text-[var(--color-mist)]">
+      <p className="mb-6 text-sm leading-relaxed text-[var(--color-mist)]">
         כרטיס חשבון הוא מקום משותף לתיעוד חיובים והחזרים, עם אישור ברור של שני הצדדים.
-      </p>
-      <p className="mb-6 text-xs leading-relaxed text-[var(--color-mist)]/85">
-        {DASHBOARD_NEW_CARD_INDEPENDENCE_HINT}
       </p>
       <Link
         href="/app/cards/new"

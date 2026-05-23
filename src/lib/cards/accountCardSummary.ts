@@ -69,8 +69,14 @@ export function buildAccountCardSummary(
     activeParticipantsForTitle ?? []
   );
 
+  const createdByUid =
+    typeof data.createdByUid === "string" && data.createdByUid.trim().length > 0
+      ? data.createdByUid.trim()
+      : undefined;
+
   return {
     id: cardId,
+    createdByUid,
     title: displayTitle,
     balancePerspectiveUid: data.balancePerspectiveUid,
     officialBalance: data.officialBalance,

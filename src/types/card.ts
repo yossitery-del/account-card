@@ -61,6 +61,8 @@ export type CardParticipant = {
 /** כרטיס עם מזהה — לדשבורד ומסך פרטים */
 export type AccountCardSummary = {
   id: string;
+  /** יוצר הכרטיס — מ-accountCards.createdByUid; חסר בכרטיסי legacy או cache ישן */
+  createdByUid?: string;
   /** כותרת לתצוגה אצל הצופה — נגזרת בלקוח כשיש שני משתתפים פעילים; לא שדה Firestore */
   title: string;
   balancePerspectiveUid: string;

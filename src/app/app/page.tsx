@@ -5,6 +5,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { CardList } from "@/components/cards/CardList";
 import { DashboardCommandCenter } from "@/components/cards/DashboardHeader";
 import { DashboardToolbar } from "@/components/cards/DashboardToolbar";
+import { CreateOwnCardHint } from "@/components/cards/CreateOwnCardHint";
 import { EmptyCardsState } from "@/components/cards/EmptyCardsState";
 import { DevAuthIdentity } from "@/components/dev/DevAuthIdentity";
 import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
@@ -17,6 +18,7 @@ import {
   refreshDashboardCardInPlace,
   replaceDashboardCard,
 } from "@/lib/cards/refreshDashboardCard";
+import { userHasCreatedOwnCard } from "@/lib/cards/hasCreatedOwnCard";
 import { listUserCards } from "@/lib/cards/listUserCards";
 import { useDashboardRevalidate } from "@/lib/cards/useDashboardRevalidate";
 import {
@@ -167,6 +169,10 @@ export default function AppPage() {
     };
   }, [authUid, authLoading, applyDashboardCards]);
 
+  const showCreateOwnCardHint = Boolean(
+    authUid && cards.length > 0 && !userHasCreatedOwnCard(cards, authUid)
+  );
+
   return (
     <main className="min-h-dvh px-6 pt-[max(2.75rem,calc(env(safe-area-inset-top,0px)+1.25rem))] pb-[max(2.5rem,env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto w-full max-w-lg">
@@ -191,11 +197,14 @@ export default function AppPage() {
             {cards.length === 0 ? (
               <EmptyCardsState />
             ) : (
-              <CardList
-                cards={cards}
-                viewerUid={authUid!}
-                onCardRefresh={refreshCard}
-              />
+              <>
+                {showCreateOwnCardHint ? <CreateOwnCardHint /> : null}
+                <CardList
+                  cards={cards}
+                  viewerUid={authUid!}
+                  onCardRefresh={refreshCard}
+                />
+              </>
             )}
           </>
         )}
