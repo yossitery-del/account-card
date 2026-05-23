@@ -26,6 +26,10 @@ export function activeCardsMeta(count: number): string {
   return `${count} כרטיסי חשבון פעילים`;
 }
 
+/** הבהרה למשתמש: ניתן לפתוח כרטיסים עצמאיים מול צדדים נוספים. */
+export const DASHBOARD_NEW_CARD_INDEPENDENCE_HINT =
+  "גם אתה יכול לפתוח כרטיס חשבון משותף עם כל מי שיש לך איתו התחשבנות.";
+
 export const dashboardCopy = {
   cardsSectionTitle: "הכרטיסים שלי",
   searchPlaceholder: "חפש כרטיס חשבון...",

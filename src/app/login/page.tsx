@@ -7,8 +7,17 @@ import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 export default function LoginPage() {
   return (
     <LoginRedirect>
-      <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-16">
-        <div className="glass-card w-full max-w-md rounded-2xl p-10 text-center">
+      <main className="vault-bg relative flex min-h-dvh flex-col items-center justify-center overflow-x-hidden px-4 py-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_50%_at_50%_-5%,rgba(194,176,146,0.09),transparent_55%)]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-[radial-gradient(ellipse_80%_70%_at_50%_100%,rgba(28,29,25,0.85),transparent)]"
+        />
+        <div className="relative z-10 w-full max-w-md">
+        <div className="join-hero-card rounded-2xl p-8 text-center sm:p-10">
           <p className="mb-5 text-sm tracking-wide text-[var(--color-champagne)]">
             פנקס בתוך כספת
           </p>
@@ -22,6 +31,7 @@ export default function LoginPage() {
           </p>
 
           <LegalFooterLinks className="mt-4 w-full" />
+        </div>
         </div>
       </main>
     </LoginRedirect>

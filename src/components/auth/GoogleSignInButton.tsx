@@ -38,7 +38,7 @@ export function GoogleSignInButton() {
         type="button"
         onClick={handleSignIn}
         disabled={pending || authLoading}
-        className="w-full rounded-full border border-[var(--color-champagne)] bg-[var(--color-glass-surface)] px-6 py-3.5 text-base font-medium text-[var(--color-pearl)] transition-colors hover:bg-[rgba(201,184,150,0.12)] hover:text-[var(--color-champagne-hover)] disabled:opacity-50"
+        className="w-full rounded-full border border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] px-6 py-4 text-base font-medium text-[var(--color-pearl)] shadow-[0_4px_24px_rgba(201,184,150,0.12)] transition-[background-color,box-shadow] hover:bg-[rgba(201,184,150,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-vault-focus-ring)] disabled:opacity-50"
       >
         {pending ? "מתחבר..." : "התחברות עם Google"}
       </button>
