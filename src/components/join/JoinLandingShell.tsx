@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 import { JOIN_LANDING_TRUST_LINE } from "@/lib/invitations/joinPreviewCopy";
 
 type JoinLandingShellProps = {
@@ -25,9 +26,12 @@ export function JoinLandingShell({ header, children }: JoinLandingShellProps) {
         <div className="flex flex-1 flex-col justify-center py-6">
           <div className="mx-auto w-full max-w-lg">{children}</div>
         </div>
-        <p className="shrink-0 text-center text-[11px] leading-relaxed text-[var(--color-mist)]/60">
-          {JOIN_LANDING_TRUST_LINE}
-        </p>
+        <footer className="shrink-0 space-y-2 text-center">
+          <p className="text-[11px] leading-relaxed text-[var(--color-mist)]/60">
+            {JOIN_LANDING_TRUST_LINE}
+          </p>
+          <LegalFooterLinks className="text-[11px] text-[var(--color-mist)]/70" />
+        </footer>
       </div>
     </main>
   );

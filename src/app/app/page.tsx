@@ -7,6 +7,7 @@ import { DashboardCommandCenter } from "@/components/cards/DashboardHeader";
 import { DashboardToolbar } from "@/components/cards/DashboardToolbar";
 import { EmptyCardsState } from "@/components/cards/EmptyCardsState";
 import { DevAuthIdentity } from "@/components/dev/DevAuthIdentity";
+import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 import { LoadingVault } from "@/components/ui/LoadingVault";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { FunctionsHealthDebug } from "@/components/dev/FunctionsHealthDebug";
@@ -200,6 +201,10 @@ export default function AppPage() {
         )}
 
         {isDev ? <FunctionsHealthDebug /> : null}
+
+        <footer className="mt-12 border-t border-[var(--color-glass-border)] pt-6 text-center">
+          <LegalFooterLinks />
+        </footer>
       </div>
     </main>
   );
