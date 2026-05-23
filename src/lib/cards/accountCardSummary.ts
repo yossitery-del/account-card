@@ -28,12 +28,29 @@ export function updatedAtToMillis(value: unknown): number {
   return 0;
 }
 
+function pendingAwaitingMyApprovalCount(card: AccountCardSummary): number {
+  return card.pendingAwaitingMyApproval.pendingAwaitingMyApprovalCount;
+}
+
 export function sortAccountCardSummaries(
   cards: AccountCardSummary[]
 ): AccountCardSummary[] {
-  return [...cards].sort(
-    (a, b) => updatedAtToMillis(b.updatedAt) - updatedAtToMillis(a.updatedAt)
-  );
+  return [...cards].sort((a, b) => {
+    const aPending = pendingAwaitingMyApprovalCount(a);
+    const bPending = pendingAwaitingMyApprovalCount(b);
+    const aHasPending = aPending > 0 ? 1 : 0;
+    const bHasPending = bPending > 0 ? 1 : 0;
+
+    if (bHasPending !== aHasPending) {
+      return bHasPending - aHasPending;
+    }
+
+    if (bHasPending > 0 && bPending !== aPending) {
+      return bPending - aPending;
+    }
+
+    return updatedAtToMillis(b.updatedAt) - updatedAtToMillis(a.updatedAt);
+  });
 }
 
 export async function fetchActiveParticipantsForCardDisplayTitle(
