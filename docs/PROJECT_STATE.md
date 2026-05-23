@@ -224,6 +224,52 @@
 | **2D-P1A** | Light refresh אחרי `createEntry` — יתרות ב-response + patch + `listEntries` — **סגור** |
 | **2D-P1B** | Light refresh אחרי approve/reject/cancel/edit — אותו דפוס + `refreshAfterEntryMutation` — **סגור** |
 
+## מצב פיילוט נוכחי
+
+> **מקור אמת לפיילוט** — עדכון סעיף זה לפני כל פיתוח/שליחה לפיילוט. לא ליצור מסמכי SoT כפולים; מסמכי עומק מפנים לכאן.
+
+### מה כבר סגור
+
+- **WhatsApp Preview** — עובד (תמונת מוצר / OG על `account-card-prod.vercel.app`, לא אייקון גנרי)
+- **קישור הצטרפות** — `/j/{token}` (נתיב ראשי; `/join/{token}` legacy נשמר)
+- **הודעת הזמנה קצרה (Mode A)** — נוסח מאושר:
+  > פתחתי לנו כרטיס חשבון. כנס כאן 👇🏼
+- **`/terms` ו־`/privacy`** — באוויר בפרודקשן; קישורים ב־login, join landing ופוטר דשבורד `/app`
+- **מסמכי Growth / Outreach / Measurement** — קיימים תחת `docs/AI_GROWTH_HANDOFF/`
+- **[PILOT_OUTREACH_PLAYBOOK.md](./PILOT_OUTREACH_PLAYBOOK.md)** — קיים ומסונכרן עם Mode A/B, גיליון מדידה וקישורי פרודקשן
+
+### מה פתוח לפני פיילוט אמיתי
+
+| נושא | תיאור |
+|------|--------|
+| **Login — עקביות עיצוב** | יישור מסך `/login` לשפה כהה/פרימיום (vault), בלי גווני כחול זרים |
+| **Pilot Control Room** | `/admin/pilot` (מתוכנן) — מדדים **מצרפיים בלבד**; **ללא PII** ו**ללא סכומים** כברירת מחדל; גישה בשרת + allowlist |
+| **סרטון קצר** | 25–40 שניות — אייפון (Safari) + אנדרואיד (Chrome); «איך זה עובד?» / הוספה למסך הבית |
+| **3 משתמשים ראשונים** | שליחה מכוונת לפי [PILOT_OUTREACH_PLAYBOOK](./PILOT_OUTREACH_PLAYBOOK.md) (Mode A) + רישום בגיליון מדידה |
+
+**Needs legal review (פנימי):** ניסוח סופי של תנאים/פרטיות לפני הרחבה מעבר ל־3 משתמשים — ראו [PILOT_TRUST_PRIVACY_CONTROL_ROOM_VIDEO_PLAN.md](./PILOT_TRUST_PRIVACY_CONTROL_ROOM_VIDEO_PLAN.md).
+
+### מסמכים רלוונטיים
+
+| מסמך | תפקיד |
+|------|--------|
+| [PILOT_OUTREACH_PLAYBOOK.md](./PILOT_OUTREACH_PLAYBOOK.md) | שליחה, Mode A/B, תסריטי וואטסאפ |
+| [PILOT_TRUST_PRIVACY_CONTROL_ROOM_VIDEO_PLAN.md](./PILOT_TRUST_PRIVACY_CONTROL_ROOM_VIDEO_PLAN.md) | אמון, פרטיות, Control Room, סרטון |
+| [AI_GROWTH_HANDOFF/04_PILOT_READINESS_CHECKLIST.md](./AI_GROWTH_HANDOFF/04_PILOT_READINESS_CHECKLIST.md) | צ׳קליסט מוכנות לפני משתמשים אמיתיים |
+| [AI_GROWTH_HANDOFF/08_PILOT_MEASUREMENT_SYSTEM.md](./AI_GROWTH_HANDOFF/08_PILOT_MEASUREMENT_SYSTEM.md) | מדידה, North Star, גיליון |
+
+### סדר עדיפות נוכחי
+
+1. **א.** עקביות עיצוב login (`/login`)
+2. **ב.** Pilot Control Room (מצרפי, ללא PII/סכומים)
+3. **ג.** סרטון קצר (iOS + Android)
+4. **ד.** 3 משתמשים ראשונים (Mode A + גיליון)
+5. **ה.** גל פיילוט ראשון (הרחבה מבוקרת אחרי למידה מ־3)
+
+### כלל עבודה
+
+כל פיתוח חדש לפיילוט חייב **להתיישר מול סעיף זה** ב־`docs/PROJECT_STATE.md` — עדכון הסעיף לפני/אחרי שינוי משמעותי; **לא** ליצור מסמכי Source of Truth כפולים. תכנון עומק נשאר במסמכי הפיילוט המפורטים למעלה.
+
 ## Post-pilot UX backlog
 
 > **תיעוד בלבד — לא ליישם לפני סיום פיילוט ואישור מפוצה.** לא מחליף שלבים פתוחים (למשל **2D-1**). רשימת זיכרון למוצר — ללא שינוי קוד ב-repo לפי סעיף זה.
@@ -316,4 +362,8 @@
 | [TRUTH_DATASET.md](./TRUTH_DATASET.md) | רגרסיה יתרות Yossi/Stav |
 | [STAGE2B-3_JOIN_PREVIEW.md](./STAGE2B-3_JOIN_PREVIEW.md) | Join preview — סגור |
 | [ROADMAP.md](./ROADMAP.md) | Roadmap |
+| [PILOT_OUTREACH_PLAYBOOK.md](./PILOT_OUTREACH_PLAYBOOK.md) | פיילוט — שליחה ותסריטים |
+| [PILOT_TRUST_PRIVACY_CONTROL_ROOM_VIDEO_PLAN.md](./PILOT_TRUST_PRIVACY_CONTROL_ROOM_VIDEO_PLAN.md) | פיילוט — אמון, Control Room, סרטון |
+| [AI_GROWTH_HANDOFF/04_PILOT_READINESS_CHECKLIST.md](./AI_GROWTH_HANDOFF/04_PILOT_READINESS_CHECKLIST.md) | צ׳קליסט מוכנות פיילוט |
+| [AI_GROWTH_HANDOFF/08_PILOT_MEASUREMENT_SYSTEM.md](./AI_GROWTH_HANDOFF/08_PILOT_MEASUREMENT_SYSTEM.md) | מדידת פיילוט |
 | [DEPLOY_HOSTING.md](./DEPLOY_HOSTING.md) | החלטת hosting — Vercel + Firebase |
