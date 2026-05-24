@@ -6,7 +6,11 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { BrandMarkButton } from "@/components/brand/BrandMarkButton";
 import { LoadingVault } from "@/components/ui/LoadingVault";
 import { getFirebaseAuth } from "@/lib/firebase/client";
-import type { PilotMetricsAggregate } from "@/types/pilotMetrics";
+import type {
+  PilotMetricsAggregate,
+  PilotMetricsDelta,
+  PilotMetricsSnapshot,
+} from "@/types/pilotMetrics";
 
 type HealthLevel = "green" | "yellow" | "red";
 
@@ -58,6 +62,17 @@ function formatPercent(value: number | null): string {
   return `${value.toLocaleString("he-IL")}%`;
 }
 
+function formatDelta(value: number | null, suffix = ""): string {
+  if (value === null || Number.isNaN(value)) {
+    return "—";
+  }
+  if (value === 0) {
+    return "ללא שינוי";
+  }
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toLocaleString("he-IL")}${suffix}`;
+}
+
 function formatTimestamp(iso: string | null): string {
   if (!iso) {
     return "—";
@@ -104,10 +119,82 @@ const conversionMetrics: Array<{
   { key: "invitationsToAccepted", label: "הזמנות → הצטרפות" },
 ];
 
+function deltaValue(current: number | null, previous: number | null): number | null {
+  if (current === null || previous === null) {
+    return null;
+  }
+  return Math.round((current - previous) * 10) / 10;
+}
+
+function computeDelta(
+  current: PilotMetricsAggregate,
+  snapshot: PilotMetricsSnapshot | null
+): PilotMetricsDelta | null {
+  if (!snapshot) {
+    return null;
+  }
+  const previous = snapshot.metrics;
+
+  return {
+    usersWithProfiles: deltaValue(
+      current.usersWithProfiles,
+      previous.usersWithProfiles
+    ),
+    totalCards: deltaValue(current.totalCards, previous.totalCards),
+    twoSidedCards: deltaValue(current.twoSidedCards, previous.twoSidedCards),
+    cardsWithEntries: deltaValue(
+      current.cardsWithEntries,
+      previous.cardsWithEntries
+    ),
+    cardsWithApprovedEntries: deltaValue(
+      current.cardsWithApprovedEntries,
+      previous.cardsWithApprovedEntries
+    ),
+    invitationsCreated: deltaValue(
+      current.invitationsCreated,
+      previous.invitationsCreated
+    ),
+    invitationsAccepted: deltaValue(
+      current.invitationsAccepted,
+      previous.invitationsAccepted
+    ),
+    pendingEntries: deltaValue(current.pendingEntries, previous.pendingEntries),
+    approvedEntries: deltaValue(
+      current.approvedEntries,
+      previous.approvedEntries
+    ),
+    usersWhoCreatedCards: deltaValue(
+      current.usersWhoCreatedCards,
+      previous.usersWhoCreatedCards
+    ),
+    usersWithMoreThanOneCard: deltaValue(
+      current.usersWithMoreThanOneCard,
+      previous.usersWithMoreThanOneCard
+    ),
+    conversionRates: {
+      cardsToTwoSidedCards: deltaValue(
+        current.conversionRates.cardsToTwoSidedCards,
+        previous.conversionRates.cardsToTwoSidedCards
+      ),
+      twoSidedCardsToApprovedActivity: deltaValue(
+        current.conversionRates.twoSidedCardsToApprovedActivity,
+        previous.conversionRates.twoSidedCardsToApprovedActivity
+      ),
+      invitationsToAccepted: deltaValue(
+        current.conversionRates.invitationsToAccepted,
+        previous.conversionRates.invitationsToAccepted
+      ),
+    },
+  };
+}
+
 export default function PilotControlRoomPage() {
   const { user, loading: authLoading } = useAuth();
   const [metrics, setMetrics] = useState<PilotMetricsAggregate | null>(null);
+  const [latestSnapshot, setLatestSnapshot] =
+    useState<PilotMetricsSnapshot | null>(null);
   const [loading, setLoading] = useState(false);
+  const [savingSnapshot, setSavingSnapshot] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadMetrics = useCallback(async () => {
@@ -126,15 +213,24 @@ export default function PilotControlRoomPage() {
         return;
       }
 
-      const response = await fetch("/api/admin/pilot-metrics", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        cache: "no-store",
-      });
+      const headers = { Authorization: `Bearer ${token}` };
+      const [response, snapshotResponse] = await Promise.all([
+        fetch("/api/admin/pilot-metrics", {
+          headers,
+          cache: "no-store",
+        }),
+        fetch("/api/admin/pilot-metrics/snapshots", {
+          headers,
+          cache: "no-store",
+        }),
+      ]);
 
       const body = (await response.json()) as
         | PilotMetricsAggregate
+        | { error?: string };
+      const snapshotBody = (await snapshotResponse.json()) as
+        | PilotMetricsSnapshot
+        | null
         | { error?: string };
 
       if (!response.ok) {
@@ -147,14 +243,73 @@ export default function PilotControlRoomPage() {
         return;
       }
 
+      if (!snapshotResponse.ok) {
+        setError(
+          typeof snapshotBody === "object" &&
+            snapshotBody &&
+            "error" in snapshotBody &&
+            snapshotBody.error
+            ? snapshotBody.error
+            : "לא הצלחנו לטעון תמונת מצב."
+        );
+        setMetrics(null);
+        setLatestSnapshot(null);
+        return;
+      }
+
       setMetrics(body as PilotMetricsAggregate);
+      setLatestSnapshot(snapshotBody as PilotMetricsSnapshot | null);
     } catch {
       setError("לא הצלחנו לטעון מדדים. נסה שוב.");
       setMetrics(null);
+      setLatestSnapshot(null);
     } finally {
       setLoading(false);
     }
   }, [user]);
+
+  const saveSnapshot = useCallback(async () => {
+    if (!user) {
+      return;
+    }
+
+    setSavingSnapshot(true);
+    setError(null);
+
+    try {
+      const token = await getFirebaseAuth().currentUser?.getIdToken();
+      if (!token) {
+        setError("נדרשת התחברות.");
+        return;
+      }
+
+      const response = await fetch("/api/admin/pilot-metrics/snapshots", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        cache: "no-store",
+      });
+      const body = (await response.json()) as
+        | PilotMetricsSnapshot
+        | { error?: string };
+
+      if (!response.ok) {
+        setError(
+          typeof body === "object" && body && "error" in body && body.error
+            ? body.error
+            : "לא הצלחנו לשמור תמונת מצב."
+        );
+        return;
+      }
+
+      await loadMetrics();
+    } catch {
+      setError("לא הצלחנו לשמור תמונת מצב. נסה שוב.");
+    } finally {
+      setSavingSnapshot(false);
+    }
+  }, [loadMetrics, user]);
 
   useEffect(() => {
     if (authLoading) {
@@ -168,6 +323,7 @@ export default function PilotControlRoomPage() {
   }, [authLoading, user, loadMetrics]);
 
   const health = metrics ? resolveHealthLevel(metrics) : null;
+  const delta = metrics ? computeDelta(metrics, latestSnapshot) : null;
 
   return (
     <main className="vault-bg relative min-h-dvh overflow-x-hidden px-4 py-[max(1.5rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-6">
@@ -193,8 +349,11 @@ export default function PilotControlRoomPage() {
 
           <MetricsToolbar
             loading={loading}
+            savingSnapshot={savingSnapshot}
             generatedAt={metrics?.generatedAt ?? null}
+            snapshotCreatedAt={latestSnapshot?.createdAt ?? null}
             onRefresh={() => void loadMetrics()}
+            onSaveSnapshot={() => void saveSnapshot()}
           />
 
           {health ? (
@@ -239,6 +398,10 @@ export default function PilotControlRoomPage() {
                     <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--color-champagne)]">
                       {formatMetric(metrics[key] as number | null)}
                     </p>
+                    <DeltaLine
+                      delta={delta ? (delta[key] as number | null) : null}
+                      hasSnapshot={Boolean(latestSnapshot)}
+                    />
                   </article>
                 ))}
               </div>
@@ -248,7 +411,11 @@ export default function PilotControlRoomPage() {
               <h2 className="mb-4 text-base font-medium text-[var(--color-pearl)]">
                 יחסי המרה
               </h2>
-              <ConversionGrid metrics={metrics} />
+              <ConversionGrid
+                metrics={metrics}
+                delta={delta}
+                hasSnapshot={Boolean(latestSnapshot)}
+              />
             </section>
           </>
         ) : null}
@@ -280,27 +447,64 @@ function MotionContent({ children }: { children: ReactNode }) {
 
 function MetricsToolbar({
   loading,
+  savingSnapshot,
   generatedAt,
+  snapshotCreatedAt,
   onRefresh,
+  onSaveSnapshot,
 }: {
   loading: boolean;
+  savingSnapshot: boolean;
   generatedAt: string | null;
+  snapshotCreatedAt: string | null;
   onRefresh: () => void;
+  onSaveSnapshot: () => void;
 }) {
   return (
     <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-glass-border)] pt-4">
-      <p className="text-xs text-[var(--color-mist)]">
-        עודכן לאחרונה: {formatTimestamp(generatedAt)}
-      </p>
-      <button
-        type="button"
-        onClick={onRefresh}
-        disabled={loading}
-        className="inline-flex min-h-10 items-center justify-center rounded-full border border-[var(--color-champagne)]/55 bg-[rgba(201,184,150,0.08)] px-5 py-2.5 text-sm text-[var(--color-pearl)] transition-colors hover:border-[var(--color-champagne)] hover:bg-[rgba(201,184,150,0.14)] disabled:opacity-50"
-      >
-        {loading ? "מרענן..." : "רענן"}
-      </button>
+      <div className="space-y-1 text-xs text-[var(--color-mist)]">
+        <p>עודכן לאחרונה: {formatTimestamp(generatedAt)}</p>
+        <p>
+          {snapshotCreatedAt
+            ? `תמונת מצב אחרונה: ${formatTimestamp(snapshotCreatedAt)}`
+            : "אין עדיין תמונת מצב קודמת"}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={onSaveSnapshot}
+          disabled={loading || savingSnapshot}
+          className="inline-flex min-h-10 items-center justify-center rounded-full border border-[var(--color-champagne)]/55 bg-[rgba(201,184,150,0.08)] px-5 py-2.5 text-sm text-[var(--color-pearl)] transition-colors hover:border-[var(--color-champagne)] hover:bg-[rgba(201,184,150,0.14)] disabled:opacity-50"
+        >
+          {savingSnapshot ? "שומר..." : "שמור תמונת מצב"}
+        </button>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading || savingSnapshot}
+          className="inline-flex min-h-10 items-center justify-center rounded-full border border-[var(--color-champagne)]/55 bg-[rgba(201,184,150,0.08)] px-5 py-2.5 text-sm text-[var(--color-pearl)] transition-colors hover:border-[var(--color-champagne)] hover:bg-[rgba(201,184,150,0.14)] disabled:opacity-50"
+        >
+          {loading ? "מרענן..." : "רענן"}
+        </button>
+      </div>
     </div>
+  );
+}
+
+function DeltaLine({
+  delta,
+  hasSnapshot,
+  suffix = "",
+}: {
+  delta: number | null;
+  hasSnapshot: boolean;
+  suffix?: string;
+}) {
+  return (
+    <p className="mt-2 text-xs text-[var(--color-mist)]">
+      {hasSnapshot ? formatDelta(delta, suffix) : "אין תמונת מצב קודמת"}
+    </p>
   );
 }
 
@@ -317,7 +521,15 @@ function HealthBanner({ health }: { health: HealthLevel }) {
   );
 }
 
-function ConversionGrid({ metrics }: { metrics: PilotMetricsAggregate }) {
+function ConversionGrid({
+  metrics,
+  delta,
+  hasSnapshot,
+}: {
+  metrics: PilotMetricsAggregate;
+  delta: PilotMetricsDelta | null;
+  hasSnapshot: boolean;
+}) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {conversionMetrics.map(({ key, label }) => (
@@ -328,6 +540,11 @@ function ConversionGrid({ metrics }: { metrics: PilotMetricsAggregate }) {
           <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--color-pearl)]">
             {formatPercent(metrics.conversionRates[key])}
           </p>
+          <DeltaLine
+            delta={delta?.conversionRates[key] ?? null}
+            hasSnapshot={hasSnapshot}
+            suffix=" נק׳"
+          />
         </article>
       ))}
     </div>

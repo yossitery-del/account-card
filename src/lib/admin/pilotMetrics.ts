@@ -1,9 +1,19 @@
-import type { DocumentReference } from "firebase-admin/firestore";
+import {
+  FieldValue,
+  Timestamp,
+  type DocumentSnapshot,
+  type DocumentReference,
+} from "firebase-admin/firestore";
 import { getAdminFirestore } from "@/lib/admin/firebaseAdmin";
 import type {
   PilotMetricsAggregate,
   PilotMetricsConversionRates,
+  PilotMetricsDelta,
+  PilotMetricsSnapshot,
 } from "@/types/pilotMetrics";
+
+const SNAPSHOT_COLLECTION = "pilotMetricSnapshots";
+const SNAPSHOT_SCHEMA_VERSION = 1;
 
 function cardIdFromDocRef(ref: DocumentReference): string | null {
   return ref.parent.parent?.id ?? null;
@@ -14,6 +24,57 @@ function percent(numerator: number, denominator: number): number | null {
     return null;
   }
   return Math.round((numerator / denominator) * 1000) / 10;
+}
+
+function deltaValue(
+  current: number | null,
+  previous: number | null
+): number | null {
+  if (current === null || previous === null) {
+    return null;
+  }
+  return Math.round((current - previous) * 10) / 10;
+}
+
+function timestampToIso(value: unknown): string | null {
+  if (value instanceof Timestamp) {
+    return value.toDate().toISOString();
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (typeof value === "string" && value.trim()) {
+    return value;
+  }
+  return null;
+}
+
+function snapshotFromDoc(docSnap: DocumentSnapshot): PilotMetricsSnapshot | null {
+  const data = docSnap.data();
+  if (!data) {
+    return null;
+  }
+
+  if (!data.metrics || typeof data.metrics !== "object") {
+    return null;
+  }
+
+  const metrics = data.metrics as PilotMetricsAggregate;
+  const generatedAt =
+    typeof data.generatedAt === "string"
+      ? data.generatedAt
+      : metrics.generatedAt;
+
+  if (typeof generatedAt !== "string") {
+    return null;
+  }
+
+  return {
+    metrics,
+    createdAt: timestampToIso(data.createdAt),
+    generatedAt,
+    schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+  };
 }
 
 function buildConversionRates(
@@ -169,5 +230,109 @@ export async function collectPilotMetrics(): Promise<PilotMetricsAggregate> {
       invitationsAccepted
     ),
     generatedAt,
+  };
+}
+
+export async function getLatestPilotMetricsSnapshot(): Promise<PilotMetricsSnapshot | null> {
+  const db = getAdminFirestore();
+  const snap = await db
+    .collection(SNAPSHOT_COLLECTION)
+    .orderBy("createdAt", "desc")
+    .limit(1)
+    .get();
+
+  if (snap.empty) {
+    return null;
+  }
+
+  return snapshotFromDoc(snap.docs[0]!) ?? null;
+}
+
+export async function savePilotMetricsSnapshot(): Promise<PilotMetricsSnapshot> {
+  const db = getAdminFirestore();
+  const metrics = await collectPilotMetrics();
+  const ref = db.collection(SNAPSHOT_COLLECTION).doc();
+
+  await ref.set({
+    metrics,
+    createdAt: FieldValue.serverTimestamp(),
+    generatedAt: metrics.generatedAt,
+    schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+  });
+
+  const saved = await ref.get();
+  if (saved.exists) {
+    const snapshot = snapshotFromDoc(saved);
+    if (snapshot) {
+      return snapshot;
+    }
+  }
+
+  return {
+    metrics,
+    createdAt: null,
+    generatedAt: metrics.generatedAt,
+    schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+  };
+}
+
+export function computePilotMetricsDelta(
+  current: PilotMetricsAggregate,
+  previous: PilotMetricsAggregate | null
+): PilotMetricsDelta | null {
+  if (!previous) {
+    return null;
+  }
+
+  return {
+    usersWithProfiles: deltaValue(
+      current.usersWithProfiles,
+      previous.usersWithProfiles
+    ),
+    totalCards: deltaValue(current.totalCards, previous.totalCards),
+    twoSidedCards: deltaValue(current.twoSidedCards, previous.twoSidedCards),
+    cardsWithEntries: deltaValue(
+      current.cardsWithEntries,
+      previous.cardsWithEntries
+    ),
+    cardsWithApprovedEntries: deltaValue(
+      current.cardsWithApprovedEntries,
+      previous.cardsWithApprovedEntries
+    ),
+    invitationsCreated: deltaValue(
+      current.invitationsCreated,
+      previous.invitationsCreated
+    ),
+    invitationsAccepted: deltaValue(
+      current.invitationsAccepted,
+      previous.invitationsAccepted
+    ),
+    pendingEntries: deltaValue(current.pendingEntries, previous.pendingEntries),
+    approvedEntries: deltaValue(
+      current.approvedEntries,
+      previous.approvedEntries
+    ),
+    usersWhoCreatedCards: deltaValue(
+      current.usersWhoCreatedCards,
+      previous.usersWhoCreatedCards
+    ),
+    usersWithMoreThanOneCard: deltaValue(
+      current.usersWithMoreThanOneCard,
+      previous.usersWithMoreThanOneCard
+    ),
+    conversionRates: {
+      cardsToTwoSidedCards: deltaValue(
+        current.conversionRates.cardsToTwoSidedCards,
+        previous.conversionRates.cardsToTwoSidedCards
+      ),
+      twoSidedCardsToApprovedActivity: deltaValue(
+        current.conversionRates.twoSidedCardsToApprovedActivity,
+        previous.conversionRates.twoSidedCardsToApprovedActivity
+      ),
+      invitationsToAccepted: deltaValue(
+        current.conversionRates.invitationsToAccepted,
+        previous.conversionRates.invitationsToAccepted
+      ),
+    },
   };
 }
