@@ -24,7 +24,7 @@ function mapCreateCardError(err: unknown): string {
       return "נדרשת התחברות";
     }
     if (err.code === "functions/invalid-argument") {
-      return "הערך לא תקין";
+      return err.message || "הערך לא תקין";
     }
   }
   return "לא הצלחנו ליצור את הכרטיס. נסה שוב.";
@@ -35,7 +35,8 @@ function mapCreateCardError(err: unknown): string {
  */
 export async function createAccountCard(
   user: User,
-  title: string
+  title: string,
+  displayName?: string
 ): Promise<string> {
   const validationError = validateCardTitle(title);
   if (validationError) {
@@ -47,7 +48,7 @@ export async function createAccountCard(
   }
 
   try {
-    return await callCreateAccountCardFunction(title);
+    return await callCreateAccountCardFunction(title, displayName);
   } catch (err) {
     throw new Error(mapCreateCardError(err));
   }

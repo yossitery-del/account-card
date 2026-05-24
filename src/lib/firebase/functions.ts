@@ -63,6 +63,7 @@ export async function callHealthFunction(): Promise<HealthCallableResult> {
 
 export type CreateAccountCardInput = {
   title: string;
+  displayName?: string;
 };
 
 export type CreateAccountCardResult = {
@@ -71,13 +72,18 @@ export type CreateAccountCardResult = {
 
 /** קריאה ל-Callable `createAccountCard` — Stage 2B-1. */
 export async function callCreateAccountCardFunction(
-  title: string
+  title: string,
+  displayName?: string
 ): Promise<string> {
   const callable = httpsCallable<
     CreateAccountCardInput,
     CreateAccountCardResult
   >(getFirebaseFunctions(), "createAccountCard");
-  const result = await callable({ title: title.trim() });
+  const trimmedName = displayName?.trim();
+  const result = await callable({
+    title: title.trim(),
+    ...(trimmedName ? { displayName: trimmedName } : {}),
+  });
   return result.data.cardId;
 }
 
