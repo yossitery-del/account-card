@@ -3,15 +3,38 @@ import Link from "next/link";
 import { BrandMarkButton } from "@/components/brand/BrandMarkButton";
 import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 
+const businessDescription =
+  "התחשבנות ברורה מול לקוחות וספקים — חיובים, זיכויים ואישור של שני הצדדים במקום אחד.";
+
+const businessOgImage = {
+  url: "/og/business.png",
+  width: 1200,
+  height: 630,
+  type: "image/png",
+  alt: "כרטיס חשבון לעסק — התחשבנות ברורה מול לקוחות וספקים",
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    (process.env.NEXT_PUBLIC_APP_URL ?? "https://account-card-prod.vercel.app")
+      .trim()
+      .replace(/\/$/, "")
+  ),
   title: "כרטיס חשבון לעסק",
-  description:
-    "התחשבנות ברורה מול לקוחות וספקים — חיובים, החזרים ואישור של שני הצדדים במקום אחד.",
+  description: businessDescription,
   openGraph: {
     title: "כרטיס חשבון לעסק",
-    description:
-      "התחשבנות ברורה מול לקוחות וספקים — חיובים, החזרים ואישור של שני הצדדים במקום אחד.",
+    description: businessDescription,
     type: "website",
+    locale: "he_IL",
+    url: "/business",
+    images: [businessOgImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "כרטיס חשבון לעסק",
+    description: businessDescription,
+    images: [businessOgImage],
   },
 };
 
@@ -77,15 +100,15 @@ export default function BusinessPage() {
               לכרטיס אחד ברור.
             </p>
             <div className="mt-8">
+              <p className="mb-3 text-sm font-medium text-[var(--color-champagne)]">
+                התחל לסדר את החשבונות שלך במקום אחד.
+              </p>
               <Link
                 href="/login"
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] px-7 py-3.5 text-base font-semibold text-[var(--color-pearl)] shadow-[0_4px_24px_rgba(201,184,150,0.12)] transition-colors hover:bg-[rgba(201,184,150,0.2)] sm:w-auto"
               >
-                פתיחת כרטיס ניסיון
+                פתח כרטיס ראשון
               </Link>
-              <p className="mt-3 text-sm text-[var(--color-mist)]/78">
-                בלי התחייבות. מתחילים מכרטיס אחד.
-              </p>
             </div>
           </div>
         </section>
@@ -137,16 +160,16 @@ export default function BusinessPage() {
         <section className="py-8 sm:py-10">
           <div className="join-hero-card rounded-2xl p-7 text-center sm:p-9">
             <h2 className="text-2xl font-semibold text-[var(--color-pearl)]">
-              רוצה לבדוק אם זה עושה לך סדר?
+              רוצה לעשות סדר בהתחשבנות?
             </h2>
             <Link
               href="/login"
               className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--color-champagne)] bg-[rgba(201,184,150,0.14)] px-7 py-3.5 text-base font-semibold text-[var(--color-pearl)] transition-colors hover:bg-[rgba(201,184,150,0.2)] sm:w-auto"
             >
-              פתיחת כרטיס ניסיון
+              פתח כרטיס ראשון
             </Link>
             <p className="mt-3 text-sm text-[var(--color-mist)]/78">
-              פיילוט מבוקר. בלי התחייבות.
+              מתאים להתחלה מול לקוח, ספק או כל מי שיש איתו חשבון פתוח.
             </p>
           </div>
         </section>
