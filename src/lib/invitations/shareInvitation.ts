@@ -1,5 +1,3 @@
-import { buildInviteWhatsAppMessage } from "@/lib/invitations/whatsappShare";
-
 export function canUseNativeShare(): boolean {
   return (
     typeof navigator !== "undefined" &&
@@ -11,13 +9,8 @@ export function buildInviteShareTitle(): string {
   return "כרטיס חשבון משותף";
 }
 
-/** נוסח קצר ל-Web Share — הקישור מועבר ב-`url`. */
-export function buildInviteShareText(): string {
-  return "פתחתי לנו כרטיס חשבון. כנס כאן 👇🏼";
-}
-
 export function buildInviteMessageForCopy(inviteLink: string): string {
-  return buildInviteWhatsAppMessage(inviteLink);
+  return inviteLink;
 }
 
 /** תצוגה מקומית בלי חשיפת token מלא ב-UI. */
@@ -44,8 +37,6 @@ export async function shareInvitationNative(
 
   try {
     await navigator.share({
-      title: buildInviteShareTitle(),
-      text: buildInviteShareText(),
       url: inviteLink,
     });
     return "shared";

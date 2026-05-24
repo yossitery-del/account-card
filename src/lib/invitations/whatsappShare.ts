@@ -2,10 +2,9 @@
  * שיתוף בסיסי ב-WhatsApp (wa.me intent) — לא Business API, לא שליחה מהשרת.
  */
 
-/** נוסח מאושר לוואטסאפ — שורה אחת לפני הקישור, הקישור בשורה נפרדת */
+/** שיתוף נקי: גוף ההודעה הוא הקישור בלבד; ה-preview מגיע מ-Open Graph. */
 export function buildInviteWhatsAppMessage(inviteLink: string): string {
-  return `פתחתי לנו כרטיס חשבון. כנס כאן 👇🏼
-${inviteLink}`;
+  return inviteLink;
 }
 
 export function buildWhatsAppShareUrl(inviteLink: string): string {
