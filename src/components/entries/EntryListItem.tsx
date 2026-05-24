@@ -150,27 +150,32 @@ export function EntryListItem({
       </div>
 
       {needsYourAttention && onApprove && onReject ? (
-        <div className="mt-2.5 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            disabled={actionsDisabled}
-            onClick={() => onApprove(entry.id)}
-            className="inline-flex min-h-11 min-w-[4.5rem] items-center justify-center rounded-lg border border-[var(--color-champagne)]/35 bg-[var(--color-champagne)]/12 px-4 py-2.5 text-sm font-medium text-[var(--color-champagne)] transition hover:bg-[var(--color-champagne)]/20 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isActing && actingKind === "approve"
-              ? entriesCopy.approving
-              : entriesCopy.approve}
-          </button>
-          <button
-            type="button"
-            disabled={actionsDisabled}
-            onClick={() => onReject(entry.id)}
-            className="inline-flex min-h-11 min-w-[4.5rem] items-center justify-center rounded-lg border border-[var(--color-glass-border)]/60 bg-transparent px-4 py-2.5 text-sm font-medium text-[var(--color-mist)] transition hover:border-[var(--color-mist)]/40 hover:text-[var(--color-pearl)] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isActing && actingKind === "reject"
-              ? entriesCopy.rejecting
-              : entriesCopy.reject}
-          </button>
+        <div className="mt-2.5 space-y-2">
+          <p className="text-xs leading-relaxed text-[var(--color-mist)]/78">
+            האישור מעדכן את החשבון ביניכם בלבד — ללא העברת תשלום.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={actionsDisabled}
+              onClick={() => onApprove(entry.id)}
+              className="inline-flex min-h-11 min-w-[4.5rem] items-center justify-center rounded-lg border border-[var(--color-champagne)]/35 bg-[var(--color-champagne)]/12 px-4 py-2.5 text-sm font-medium text-[var(--color-champagne)] transition hover:bg-[var(--color-champagne)]/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isActing && actingKind === "approve"
+                ? entriesCopy.approving
+                : entriesCopy.approve}
+            </button>
+            <button
+              type="button"
+              disabled={actionsDisabled}
+              onClick={() => onReject(entry.id)}
+              className="inline-flex min-h-11 min-w-[4.5rem] items-center justify-center rounded-lg border border-[var(--color-glass-border)]/60 bg-transparent px-4 py-2.5 text-sm font-medium text-[var(--color-mist)] transition hover:border-[var(--color-mist)]/40 hover:text-[var(--color-pearl)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isActing && actingKind === "reject"
+                ? entriesCopy.rejecting
+                : entriesCopy.reject}
+            </button>
+          </div>
         </div>
       ) : null}
 

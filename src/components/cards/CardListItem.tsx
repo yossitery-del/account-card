@@ -208,6 +208,9 @@ export function CardListItem({
               {actionError}
             </p>
           ) : null}
+          <p className="mb-2.5 text-xs leading-relaxed text-[var(--color-mist)]/78">
+            האישור מעדכן את החשבון ביניכם בלבד — ללא העברת תשלום.
+          </p>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
