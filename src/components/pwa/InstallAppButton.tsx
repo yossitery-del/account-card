@@ -21,6 +21,7 @@ type NavigatorWithStandalone = Navigator & {
 type InstallAppButtonProps = {
   className?: string;
   compact?: boolean;
+  variant?: "button" | "card";
 };
 
 function isStandaloneDisplay(): boolean {
@@ -51,6 +52,7 @@ function isIosSafari(): boolean {
 export function InstallAppButton({
   className = "",
   compact = false,
+  variant = "button",
 }: InstallAppButtonProps) {
   const [mode, setMode] = useState<InstallMode>("hidden");
   const [installPrompt, setInstallPrompt] =
@@ -126,6 +128,47 @@ export function InstallAppButton({
 
   if (mode === "hidden") {
     return null;
+  }
+
+  if (variant === "card") {
+    return (
+      <>
+        <aside
+          className={`mb-5 rounded-2xl border border-[var(--color-vault-border-metallic)] bg-[linear-gradient(135deg,rgba(194,176,146,0.11),rgba(255,255,255,0.035))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_48px_rgba(0,0,0,0.22)] sm:p-5 ${className}`}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-champagne)]/28 bg-[rgba(194,176,146,0.1)] text-[var(--color-pearl)]">
+              <InstallIcon />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base font-semibold text-[var(--color-pearl)]">
+                פתח מהר כמו אפליקציה
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-[var(--color-mist)]">
+                שמור את כרטיס חשבון למסך הבית, כדי לחזור אליו בלחיצה אחת.
+              </p>
+              <p className="mt-3 text-xs leading-5 text-[var(--color-soft-gold)]">
+                {mode === "ios"
+                  ? "באייפון: שיתוף → הוסף למסך הבית → הוסף"
+                  : "באנדרואיד: התקן / הוסף למסך הבית"}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[var(--color-champagne)]/36 bg-[rgba(194,176,146,0.12)] px-5 py-3 text-sm font-semibold text-[var(--color-pearl)] transition-colors hover:border-[var(--color-champagne)] hover:bg-[rgba(194,176,146,0.16)]"
+            aria-label="שמור למסך הבית"
+            onClick={() => void handleInstallClick()}
+          >
+            שמור למסך הבית
+          </button>
+        </aside>
+        <IosInstallGuideModal
+          open={iosGuideOpen}
+          onClose={() => setIosGuideOpen(false)}
+        />
+      </>
+    );
   }
 
   return (

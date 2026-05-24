@@ -9,6 +9,7 @@ import { CreateOwnCardHint } from "@/components/cards/CreateOwnCardHint";
 import { EmptyCardsState } from "@/components/cards/EmptyCardsState";
 import { DevAuthIdentity } from "@/components/dev/DevAuthIdentity";
 import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
+import { InstallAppButton } from "@/components/pwa/InstallAppButton";
 import { LoadingVault } from "@/components/ui/LoadingVault";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
 import { FunctionsHealthDebug } from "@/components/dev/FunctionsHealthDebug";
@@ -194,6 +195,7 @@ export default function AppPage() {
             {authUid ? (
               <DashboardCommandCenter cards={cards} />
             ) : null}
+            {authUid ? <InstallAppButton variant="card" /> : null}
             {cards.length === 0 ? (
               <EmptyCardsState />
             ) : (
