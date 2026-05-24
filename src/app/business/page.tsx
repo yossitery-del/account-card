@@ -4,7 +4,7 @@ import { BrandMarkButton } from "@/components/brand/BrandMarkButton";
 import { LegalFooterLinks } from "@/components/legal/LegalFooterLinks";
 
 const businessDescription =
-  "התחשבנות ברורה מול לקוחות וספקים — חיובים, זיכויים ואישור של שני הצדדים במקום אחד.";
+  "רכז חיובים, זיכויים ויתרה מתעדכנת בכרטיס אחד — בלי לחפש בין הודעות ופתקים.";
 
 const businessOgImage = {
   url: "/og/business.png",
