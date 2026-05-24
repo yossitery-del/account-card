@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ProcessingOverlay } from "@/components/ui/ProcessingOverlay";
@@ -15,19 +15,9 @@ export function CreateCardForm() {
   const { user } = useAuth();
   const router = useRouter();
   const [title, setTitle] = useState("");
-  const [displayName, setDisplayName] = useState(() =>
-    user?.displayName?.trim() ?? ""
-  );
-  const [displayNameTouched, setDisplayNameTouched] = useState(false);
+  const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    if (displayNameTouched) {
-      return;
-    }
-    setDisplayName(user?.displayName?.trim() ?? "");
-  }, [displayNameTouched, user?.displayName]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -91,10 +81,7 @@ export function CreateCardForm() {
         <input
           type="text"
           value={displayName}
-          onChange={(e) => {
-            setDisplayNameTouched(true);
-            setDisplayName(e.target.value);
-          }}
+          onChange={(e) => setDisplayName(e.target.value)}
           disabled={pending}
           maxLength={80}
           className="mb-2 w-full rounded-xl border border-[var(--color-glass-border)] bg-[var(--color-glass-surface)] px-4 py-3 text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
