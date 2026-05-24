@@ -4,7 +4,7 @@
  * תוכן קבוע בלבד, ללא token / Firebase / נתוני כרטיס בתוך התמונה.
  */
 
-export const JOIN_OG_TITLE = "כרטיס חשבון משותף";
+export const JOIN_OG_TITLE = "פתחתי לנו כרטיס חשבון";
 
 export const JOIN_OG_DESCRIPTION =
   "ראה את הכרטיס, אשר שינויים, ושמור יתרה ברורה ביניכם.";
