@@ -2,7 +2,6 @@ import {FieldValue} from "firebase-admin/firestore";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {db, FUNCTIONS_REGION} from "../lib/admin";
 import {requireAuthUid} from "../lib/auth";
-import {isCleanDisplayName} from "../lib/displayNameQuality";
 import {profileFromToken} from "../lib/profileFromToken";
 import {parseParticipantDisplayName} from "../lib/validators";
 
@@ -11,7 +10,7 @@ const TITLE_MAX = 200;
 
 export type CreateAccountCardInput = {
   title: string;
-  /** שם תצוגה אנושי לצד השני — חובה כששם Google/Auth לא נקי */
+  /** שם תצוגה אנושי לצד השני — חובה ביצירת כרטיס */
   displayName?: string;
 };
 
@@ -30,27 +29,6 @@ function parseTitle(raw: unknown): string {
   return title;
 }
 
-function resolveOwnerDisplayName(
-  rawDisplayName: unknown,
-  tokenDisplayName: string
-): string {
-  if (
-    rawDisplayName !== undefined &&
-    rawDisplayName !== null &&
-    rawDisplayName !== ""
-  ) {
-    return parseParticipantDisplayName(rawDisplayName);
-  }
-  const trimmedToken = tokenDisplayName.trim();
-  if (isCleanDisplayName(trimmedToken)) {
-    return parseParticipantDisplayName(trimmedToken);
-  }
-  throw new HttpsError(
-    "invalid-argument",
-    "נא להזין שם תצוגה תקין לצד השני"
-  );
-}
-
 /**
  * יוצר כרטיס + owner participant + audit events בטרנזקציה אחת.
  */
@@ -59,11 +37,8 @@ export const createAccountCard = onCall(
   async (request): Promise<CreateAccountCardOutput> => {
     const uid = requireAuthUid(request);
     const title = parseTitle(request.data?.title);
-    const {email, displayName: tokenDisplayName} = profileFromToken(request);
-    const displayName = resolveOwnerDisplayName(
-      request.data?.displayName,
-      tokenDisplayName
-    );
+    const {email} = profileFromToken(request);
+    const displayName = parseParticipantDisplayName(request.data?.displayName);
 
     const cardRef = db.collection("accountCards").doc();
     const cardId = cardRef.id;

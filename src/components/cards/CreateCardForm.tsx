@@ -9,21 +9,14 @@ import {
   validateCardTitle,
 } from "@/lib/cards/createAccountCard";
 import { loadingLabels } from "@/lib/ui/loadingLabels";
-import {
-  isCleanDisplayName,
-  suggestedDisplayNameFromAuth,
-  validateDisplayNameInput,
-} from "@/lib/users/displayNameQuality";
+import { validateDisplayNameInput } from "@/lib/users/displayNameQuality";
 
 export function CreateCardForm() {
   const { user } = useAuth();
   const router = useRouter();
   const [title, setTitle] = useState("");
-  const needsDisplayName = Boolean(
-    user && !isCleanDisplayName(user.displayName)
-  );
   const [displayName, setDisplayName] = useState(() =>
-    suggestedDisplayNameFromAuth(user?.displayName)
+    user?.displayName?.trim() ?? ""
   );
   const [displayNameTouched, setDisplayNameTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +26,7 @@ export function CreateCardForm() {
     if (displayNameTouched) {
       return;
     }
-    setDisplayName(suggestedDisplayNameFromAuth(user?.displayName));
+    setDisplayName(user?.displayName?.trim() ?? "");
   }, [displayNameTouched, user?.displayName]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -51,15 +44,11 @@ export function CreateCardForm() {
       return;
     }
 
-    const cleanDisplayName = needsDisplayName
-      ? displayName.trim()
-      : user.displayName?.trim();
-    if (needsDisplayName) {
-      const displayNameError = validateDisplayNameInput(cleanDisplayName ?? "");
-      if (displayNameError) {
-        setError(displayNameError);
-        return;
-      }
+    const cleanDisplayName = displayName.trim();
+    const displayNameError = validateDisplayNameInput(cleanDisplayName);
+    if (displayNameError) {
+      setError(displayNameError);
+      return;
     }
 
     setPending(true);
@@ -96,28 +85,24 @@ export function CreateCardForm() {
         <p className="mb-4 text-xs leading-relaxed text-[var(--color-mist)]">
           זה השם שיופיע אצלך בדשבורד.
         </p>
-        {needsDisplayName ? (
-          <>
-            <label className="mb-2 block text-sm text-[var(--color-mist)]">
-              איך תרצה שהשם שלך יופיע לצד השני?
-            </label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => {
-                setDisplayNameTouched(true);
-                setDisplayName(e.target.value);
-              }}
-              disabled={pending}
-              maxLength={80}
-              className="mb-2 w-full rounded-xl border border-[var(--color-glass-border)] bg-[var(--color-glass-surface)] px-4 py-3 text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
-              placeholder="לדוגמה: יוסי טיירי / מהדרין תשמישי קדושה"
-            />
-            <p className="mb-4 text-xs leading-relaxed text-[var(--color-mist)]">
-              זה השם שיופיע בכרטיס אצל הצד השני.
-            </p>
-          </>
-        ) : null}
+        <label className="mb-2 block text-sm text-[var(--color-mist)]">
+          איך תרצה שהשם שלך יופיע לצד השני?
+        </label>
+        <input
+          type="text"
+          value={displayName}
+          onChange={(e) => {
+            setDisplayNameTouched(true);
+            setDisplayName(e.target.value);
+          }}
+          disabled={pending}
+          maxLength={80}
+          className="mb-2 w-full rounded-xl border border-[var(--color-glass-border)] bg-[var(--color-glass-surface)] px-4 py-3 text-[var(--color-pearl)] outline-none focus:border-[var(--color-champagne)]"
+          placeholder="שם פרטי / שם עסק"
+        />
+        <p className="mb-4 text-xs leading-relaxed text-[var(--color-mist)]">
+          זה השם שיופיע בכרטיס אצל הצד השני.
+        </p>
         <p className="mb-6 text-xs text-[var(--color-mist)]">מטבע: שקל (₪)</p>
         {error ? (
           <p className="mb-4 text-sm text-[var(--color-muted-rose)]" role="alert">
