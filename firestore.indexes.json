@@ -18,6 +18,13 @@
   ],
   "fieldOverrides": [
     {
+      "collectionGroup": "participants",
+      "fieldPath": "status",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
       "collectionGroup": "invitations",
       "fieldPath": "tokenHash",
       "indexes": [
