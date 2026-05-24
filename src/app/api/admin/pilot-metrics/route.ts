@@ -20,7 +20,19 @@ export async function GET(request: Request) {
     const metrics: PilotMetricsAggregate = await collectPilotMetrics();
     return NextResponse.json(metrics);
   } catch (err) {
-    console.error("pilot-metrics collection failed");
+    const errorInfo =
+      err instanceof Error
+        ? {
+            name: err.name,
+            message: err.message,
+            code:
+              typeof (err as { code?: unknown }).code === "string"
+                ? (err as { code?: string }).code
+                : undefined,
+          }
+        : { name: "UnknownError" };
+
+    console.error("pilot-metrics collection failed", errorInfo);
     return NextResponse.json(
       { error: "לא הצלחנו לטעון מדדים. נסה שוב." },
       { status: 500 }
