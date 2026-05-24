@@ -358,6 +358,10 @@ export function InviteForm({ cardId }: InviteFormProps) {
         >
           {inviteCopy.whatsappSecondary}
         </a>
+
+        <p className="pt-1 text-center text-[11px] leading-relaxed text-[var(--color-mist)]/70">
+          טיפ: בוואטסאפ כדאי לחכות רגע לתצוגה המקדימה לפני השליחה.
+        </p>
       </div>
     </div>
   );
