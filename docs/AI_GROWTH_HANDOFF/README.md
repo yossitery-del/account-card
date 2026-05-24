@@ -31,6 +31,7 @@ Then skim supporting files as needed.
 - `docs/PRODUCT_SCOPE.md` — scope boundaries  
 - `docs/MARKET_POSITIONING.md` — positioning language  
 - `docs/PROJECT_STATE.md` — engineering stage status  
+- `docs/PILOT_TO_SCALE_WORK_PLAN.md` — pilot-to-scale work plan and gates  
 - `docs/PRIVACY_DECISIONS.md` — analytics constraints  
 
 ## Human owner
